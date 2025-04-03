@@ -1,0 +1,13 @@
+body{
+	background-color: gray;
+}
+
+#loginPage{
+	background-color: white;
+	padding: 3%;
+	width: fit-content;
+	font-family: sans-serif;
+	border: solid;
+	border-radius: 10px;
+	margin: auto;
+}

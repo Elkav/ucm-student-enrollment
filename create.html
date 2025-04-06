@@ -9,14 +9,28 @@
             <h1>Create Account</h1>
 
             <div>
-                <p>USERNAME: <input type="text"></p> <!-- This line and the one after it are to make a username and passowrd -->
-                <p>PASSWORD: <input type="text"></p> <!-- will have to add the id and encryptions -->
+                <!-- The two lines that follow are to make a username and passowrd -->
+                <!-- <p>USERNAME: <input type="text"></p>
+                <p>PASSWORD: <input type="text"></p> -->
+                <!-- will have to add the id and encryptions -->
+
+                <label for="userName">USERNAME</label>
+                <input type="text" placeholder="Enter Username" name="userName" required>
+
+                <label for="passWord">PASSWORD</label>
+                <input type="text" placeholder="Enter Password" name="passWord" required>
+
                 <label for="role">Choose a role:</label> <!-- To choose a role from the following options -->
                 <select name="role" id="role">
                     <option value="student">Student</option>
                     <option value="teacher">Teacher</option>
                     <option value="admin">Admin</option>
                 </select>
+
+                <a href="index.html">
+					<button>CREATE ACCOUNT</button>
+				</a>
+                <!-- we need to add some way for it to save the account details to backend -->
             </div>
             
         </div>

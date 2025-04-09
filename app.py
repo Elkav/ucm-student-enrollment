@@ -6,12 +6,18 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 db = SQLAlchemy(app)
 
+enrollments = db.Table('enrollments',
+    db.Column("student_id", db.Integer, db.foreignkey('student.id'), primary_key=True),
+    db.Column('class_id', db.Integer, db.foreignkey('class.id'), primary_key=True)
+)
+
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
     firstname = db.Column(db.String(80), nullable=False)
     lastname = db.Column(db.String(80), nullable=False)
+    class_enrolled = db.relationship()
     def __repr__(self):
         return '<User %r>' % self.username
 
@@ -29,7 +35,7 @@ class Class(db.Model):
     course_name = db.Column(db.String(100), unique=True, nullable=False)
     teacher = db.Column(db.Integer, db.foreignKey('user.id'))
     time = db.Column(db.String(80))
-    students_enrolled = db.Column(db.Integer, nullable=False)
+    students_enrolled = db.relationship()
     max_students = db.Column(db.Integer, nullable=False)
     def __repr__(self):
         return '<Class %r>' % self.course_name

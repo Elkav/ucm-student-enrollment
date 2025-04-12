@@ -2,16 +2,17 @@
 	<head>
 		<title>teacher Page</title>
 		<link rel="stylesheet" href="../static/style.css">
-        <script src="../static/teacher.js"></script>
+        <script src="../static/script.js"></script>
 	</head>
 	<body> <!-- teacher table -->
+        <h1 id="greeting">Welcome {{name}}</h1>
+
+        <div>
+            <button onclick="showMyCourse_teacher()">My Course</button>
+        </div>
+
         <div>
             <button onclick="signOut()">Sign Out</button>
-        </div>        
-        <div>
-            <table id="yourCouseTable">
-                <!-- for different buttons being clicked the content will be shown with the corresponding button -->
-            </table>
         </div>
     </body>
 </html>

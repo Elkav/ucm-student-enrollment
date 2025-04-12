@@ -2,19 +2,23 @@
 	<head>
 		<title>Student Page</title>
 		<link rel="stylesheet" href="../static/style.css">
-        <script src="../static/student.js"></script>
+        <script src="../static/script.js"></script>
 	</head>
 	<body> <!-- Student table -->
-        <div>
+        <!-- <div>
             <button onclick="showInfo()">Your Courses</button>
             <button onclick="showCourses()">Add Courses</button>
             <button onclick="signOut()">Sign Out</button>
+        </div> -->
+        
+        <h1 id="greeting">Welcome {{name}}</h1>
+        <div>
+            <button onclick="showMyCourse_student()">My Course</button>
+            <button onclick="showAllCourse_student()">All Course</button>
         </div>
         
         <div>
-            <table id="yourCouseTable">
-                <!-- for different buttons being clicked the content will be shown with the corresponding button -->
-            </table>
+            <button onclick="signOut()">Sign Out</button>
         </div>
     </body>
 </html>

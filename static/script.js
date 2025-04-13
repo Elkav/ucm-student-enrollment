@@ -1,3 +1,5 @@
+console.log("Connected!");
+
 const url = "http://127.0.0.1:5000";
 let user_name = "";
 
@@ -15,8 +17,8 @@ function create_account() {
 function create() {
     let create_username = document.getElementById("username").value;
     let create_password = document.getElementById("password").value;
-    // let create_legal_name = document.getElementById("legal_name").value;
-    let statue = document.getElementById("role").value;
+    let create_legal_name = document.getElementById("legal_name").value;
+    let statue = document.getElementById("statue").value;
 
     fetch(`${url}/create`, {
         method: 'POST',
@@ -33,45 +35,22 @@ function create() {
         .catch(() => {});
 }
 
-function signIn(event) {
-    event.preventDefault();
-    
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value;
-    const errorMessage = document.getElementById("error-message");
-    
-    // Basic validation
-    if (!username || !password) {
-        errorMessage.textContent = "Please fill in all fields";
-        return false;
-    }
-    
-    // Clear any previous error messages
-    errorMessage.textContent = "";
-    
-    fetch(`${url}/${username}/${password}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Login failed');
-            }
-            return response.text();
-        })
+function signIn() {
+    let enter_username = document.getElementById("username").value;
+    let enter_password = document.getElementById("password").value;
+    fetch(`${url}/${enter_username}/${enter_password}`)
+        .then(response => response.text())
         .then(data => {
             document.open();
             document.write(data);
             document.close();
-            user_name = username;
+            user_name = enter_username
         })
-        .catch(error => {
-            errorMessage.textContent = "Invalid username or password";
-            console.error('Error:', error);
-        });
-    
-    return false;
+        .catch(err => console.error(err));
 }
 
 function showMyCourse_student() {
-    
+
 }
 
 function showAllCourse_student() {

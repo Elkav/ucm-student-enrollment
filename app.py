@@ -13,8 +13,8 @@ db = SQLAlchemy(app)
 
 # association table for many-to-many relationship between students and classes
 enrollments = db.Table('enrollments',
-    db.Column("student_id", db.Integer, db.foreignkey('student.id'), primary_key=True),
-    db.Column('class_id', db.Integer, db.foreignkey('class.id'), primary_key=True)
+    db.Column("student_id", db.Integer, db.ForeignKey('student.id'), primary_key=True),
+    db.Column('class_id', db.Integer, db.ForeignKey('class.id'), primary_key=True)
 )
 
 class Class(db.Model):
@@ -100,6 +100,40 @@ with app.app_context():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+# attempt at putting in create function from issues
+admin_name = ''
+admin_password = ''
+@app.route('/create', methods=['GET', 'POST'])
+def create():
+    if request.method == 'GET':
+        return render_template("create.html")
+    
+    data = request
+    username = data["username"]
+    password = data["password"]
+    statue = data["statue"]
+    if statue == 'student':
+        if Student.query.filter_by(username=username).first():
+            return '400'
+        student = Student(username=username, password=password)
+        db.session.add(student)
+        db.session.commit()
+        return student.to_dict()
+    elif statue == 'teacher':
+        if Teacher.query.filter_by(username=username).first():
+            return '400'
+        teacher = Teacher(username=username, password=password)
+        db.session.add(teacher)
+        db.session.commit()
+        return teacher.to_dict()
+    elif statue == 'admin' and admin_name == '':
+        admin_name = username
+        admin_password = password
+        return True
+    else:
+        return '404'
 
 if __name__ == '__main__':
     app.run(port=5000)

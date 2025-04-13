@@ -13,8 +13,8 @@ db = SQLAlchemy(app)
 
 # association table for many-to-many relationship between students and classes
 enrollments = db.Table('enrollments',
-    db.Column("student_id", db.Integer, db.ForeignKey('student.id'), primary_key=True),
-    db.Column('class_id', db.Integer, db.ForeignKey('class.id'), primary_key=True)
+    db.Column("student_id", db.Integer, db.foreignkey('student.id'), primary_key=True),
+    db.Column('class_id', db.Integer, db.foreignkey('class.id'), primary_key=True)
 )
 
 class Class(db.Model):

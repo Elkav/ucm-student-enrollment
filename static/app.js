@@ -15,8 +15,7 @@ function create_account() {
 function create() {
     let create_username = document.getElementById("username").value;
     let create_password = document.getElementById("password").value;
-    //let create_legal_name = document.getElementById("legal_name").value;
-    let create_legal_name = "John Roe";
+    let create_legal_name = document.getElementById("legal_name").value;
     let statue = document.getElementById("statue").value;
 
     fetch(`${url}/create`, {

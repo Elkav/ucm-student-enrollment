@@ -52,34 +52,36 @@ admin_name = ''
 admin_password = ''
 @app.route('/create', methods=['GET','POST'])
 def create():
-    if request.method == 'GET':
-        return render_template("create.html")
+	if request.method == 'GET':
+		return render_template("create.html")
 
-    data = request.get_json()
-    username = data["username"]
-    password = data["password"]
-    legal_name = data["legal_name"]
-    statue = data["statue"]
-    if statue == 'student':
-        if Student.query.filter_by(username=username).first():
-            return 400
-        student = Student(username=username, password=password, legal_name=legal_name)
-        db.session.add(student)
-        db.session.commit()
-        return jsonify(student.to_dict())
-    elif statue == 'teacher':
-        if Teacher.query.filter_by(username=username).first():
-            return 400
-        teacher = Teacher(username=username, password=password, legal_name=legal_name)
-        db.session.add(teacher)
-        db.session.commit()
-        return jsonify(teacher.to_dict())
-    elif statue == 'admin' and admin_name == '':
-        admin_name = username
-        admin_password = password
-        return jsonify({"success": True})
-    else:
-        return 404
+
+	if request.method == 'POST':
+		data = request.get_json()
+		username = data["username"]
+		password = data["password"]
+		legal_name = data["legal_name"]
+		statue = data["statue"]
+		if statue == 'student':
+			if Student.query.filter_by(username=username).first():
+				return "400"
+			student = Student(username=username, password=password, legal_name=legal_name)
+			db.session.add(student)
+			db.session.commit()
+			return jsonify(student.to_dict())
+		elif statue == 'teacher':
+			if Teacher.query.filter_by(username=username).first():
+				return "400"
+			teacher = Teacher(username=username, password=password, legal_name=legal_name)
+			db.session.add(teacher)
+			db.session.commit()
+			return jsonify(teacher.to_dict())
+		elif statue == 'admin' and admin_name == '':
+			admin_name = username
+			admin_password = password
+			return jsonify({"success": True})
+		else:
+			return "404"
 
 
 @app.route('/<string:username>/<string:password>')
@@ -95,7 +97,7 @@ def show_user_page(username, password):
     if username == admin_name and password == admin_password:
         return render_template("adminTemplate.html", name=admin_name)
 
-    return 404
+    return "404"
 
 if __name__ == '__main__':
     with app.app_context():

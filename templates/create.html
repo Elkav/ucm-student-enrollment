@@ -1,39 +1,19 @@
-<html>
-    <head>
-        <title>Create Account</title>
-        <link rel="stylesheet" href="../static/style.css">
-        <script src="../static/script.js"></script>
-    </head>
-
-    <body>
-        <div id="makeAccountPage">
-            <h1>Create Account</h1>
-
-            <form>
-                <!-- The two lines that follow are to make a username and passowrd -->
-                <!-- <p>USERNAME: <input type="text"></p>
-                <p>PASSWORD: <input type="text"></p> -->
-                <!-- will have to add the id and encryptions -->
-
-                <label for="userName">USERNAME</label>
-                <input type="text" id="username" placeholder="Enter Username" name="userName" required>
-
-                <label for="passWord">PASSWORD</label>
-                <input type="text" id="password" placeholder="Enter Password" name="passWord" required>
-
-                <label for="role">Choose a role:</label> <!-- To choose a role from the following options -->
-                <select name="role" id="role">
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="admin">Admin</option>
-                </select>
-
-                <a href="index.html">
-					<button onclick="create()">CREATE ACCOUNT</button>
-				</a>
-                <!-- we need to add some way for it to save the account details to backend -->
-            </form>
-            
-        </div>
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Create Account Page</title>
+    <script src="../static/app.js"></script>
+</head>
+<body>
+<div>
+    <input type="text" id="username" placeholder="Enter Username">
+    <input type="text" id="password" placeholder="Enter Password">
+    <input type="text" id="legal_name" placeholder="Enter Legal Name">
+    <input type="text" id="statue" placeholder="Enter Statue (e.g. student; teacher; admin)">
+    <button onclick="create()">Create</button>
+</div>
+    <div>
+        <button onclick="signOut()">Sign Out</button>
+    </div>
+</body>
 </html>

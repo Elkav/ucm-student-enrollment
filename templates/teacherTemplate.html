@@ -1,18 +1,16 @@
-<html>
-	<head>
-		<title>teacher Page</title>
-		<link rel="stylesheet" href="../static/style.css">
-        <script src="../static/script.js"></script>
-	</head>
-	<body> <!-- teacher table -->
-        <h1 id="greeting">Welcome {{current_user.username}}</h1>
-
-        <div>
-            <button onclick="showMyCourse_teacher()">My Course</button>
-        </div>
-
-        <div>
-            <button onclick="signOut()">Sign Out</button>
-        </div>
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Teacher Page</title>
+    <script src="../static/app.js"></script>
+</head>
+<body>
+    <h1 id="greeting">Welcome {{ name }}!</h1>
+    <div>
+        <button onclick="showMyCourse_teacher()">My Course</button>
+    </div>
+    <div>
+        <button onclick="signOut()">Sign Out</button>
+    </div>
+</body>
 </html>

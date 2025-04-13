@@ -1,6 +1,11 @@
 from flask import Flask, request, render_template, abort
 from flask_sqlalchemy import SQLAlchemy
 
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_admin import Admin
+from flask_admin.base import MenuLink
+from flask_admin.contrib.sqla import ModelView
+
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
@@ -43,6 +48,8 @@ class User(db.Model):
     password = db.Column(db.String(100), nullable=False)
     firstname = db.Column(db.String(80), nullable=False)
     lastname = db.Column(db.String(80), nullable=False)
+    # a column for the user's role (deb)
+    role = db.Column(db.String(50))
 
     # type is a discriminator, set per-subclass based on that class's polymorphic identity
     type = db.Column(db.String(32), nullable=False)
@@ -51,6 +58,12 @@ class User(db.Model):
         'polymorphic_identity':'user',   # this base User class has a polymorphic identity of 'user'
         'polymorphic_on':type           # the polymorphic_identity value is stored in type
     }
+
+    # a password checker (deb)
+    #This method is checking if a given password matches the password stored in the User object.
+    def check_password(self, password): # self.password is the password that is stored in the database for that specific user
+        return self.password == password
+    
     def __repr__(self):
         return '<User %r>' % self.username
 

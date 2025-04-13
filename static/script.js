@@ -33,22 +33,45 @@ function create() {
         .catch(() => {});
 }
 
-function signIn() {
-    let enter_username = document.getElementById("username").value;
-    let enter_password = document.getElementById("password").value;
-    fetch(`${url}/${enter_username}/${enter_password}`)
-        .then(response => response.text())
+function signIn(event) {
+    event.preventDefault();
+    
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+    const errorMessage = document.getElementById("error-message");
+    
+    // Basic validation
+    if (!username || !password) {
+        errorMessage.textContent = "Please fill in all fields";
+        return false;
+    }
+    
+    // Clear any previous error messages
+    errorMessage.textContent = "";
+    
+    fetch(`${url}/${username}/${password}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Login failed');
+            }
+            return response.text();
+        })
         .then(data => {
             document.open();
             document.write(data);
             document.close();
-            user_name = enter_username
+            user_name = username;
         })
-        .catch(err => console.error(err));
+        .catch(error => {
+            errorMessage.textContent = "Invalid username or password";
+            console.error('Error:', error);
+        });
+    
+    return false;
 }
 
 function showMyCourse_student() {
-
+    
 }
 
 function showAllCourse_student() {

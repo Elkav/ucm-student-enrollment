@@ -10,6 +10,9 @@ from flask_admin.contrib.sqla import ModelView
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///example.sqlite4"
 db = SQLAlchemy(app)
+app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
+
+admin = Admin(app, name='Class Management', template_mode='bootstrap3')
 
 courses = db.Table( "courses",
     db.Column("teacher_id", db.Integer, db.ForeignKey("teacher.id")),
@@ -55,6 +58,9 @@ class Admin(db.Model):
           return {
                 "username": self.username
           }
+          
+admin.add_view(ModelView(Student, db.session))
+admin.add_view(ModelView(Teacher, db.session))
 
 @app.route('/')
 def index():

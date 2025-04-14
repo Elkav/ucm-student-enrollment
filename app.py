@@ -1,6 +1,6 @@
 # main.py
 
-from flask import Flask, render_template, request, jsonify, g
+from flask import Flask, render_template, request, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin
 from flask_admin.base import MenuLink
@@ -77,6 +77,7 @@ class MyModelView(ModelView):
 admin.add_view(ModelView(Student, db.session))
 admin.add_view(ModelView(Teacher, db.session))
 admin.add_view(MyModelView(Course, db.session))
+admin.add_link(MenuLink(name='Logout', category='', url='/'))
 
 @app.route('/')
 def index():
@@ -132,7 +133,8 @@ def show_user_page(username, password):
 
     adminUser = AdminUser.query.filter_by(username=username).first()
     if adminUser and adminUser.password == password:
-        return render_template("adminTemplate.html", name=adminUser.username)
+        # return render_template("adminTemplate.html", name=adminUser.username)
+        return redirect('/admin')
 
     return "404"
 

@@ -52,7 +52,13 @@ function createCourse(){
 }
 
 function showMyCourse_student() {
-
+    fetch(`${url}/student/${user_name}`)
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(err => {
+            console.log(user_name)
+            console.error(err)
+        });
 }
 
 function showAllCourse_student() {

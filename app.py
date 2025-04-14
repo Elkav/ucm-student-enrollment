@@ -24,7 +24,7 @@ class Course(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False)
-    # student_id = db.Column(db.Integer, db.ForeignKey("student.id", name="studentID"), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=True)
     course_name = db.Column(db.String, nullable=False)
     time = db.Column(db.String, nullable=False)
     students_enrolled = db.Column(db.Integer, nullable=False)
@@ -138,9 +138,26 @@ def show_user_page(username, password):
 
     return "404"
 
-@app.route('/student/<string:username>', methods=['GET', 'POST'])
+@app.route('/student/<string:username>')
 def show_student_courses(username):
     student = Student.query.filter_by(username=username).first()
+    if student:
+        courses = Course.query.filter_by(student_id=student.id).all()
+        course_dict = {}
+        for course in courses:
+            course_dict[course.course_name] = course.time
+        return jsonify(course_dict), 200
+    else :
+        return jsonify({"error": "Student not found"}), 400
+
+@app.route('/student/<string:username>/<string:course_name>')
+def add_course_student(username, course_name):
+    student = Student.query.filter_by(username=username).first()
+    # if student:
+    #     course = Course.query.filter_by(course_name=course_name).first()
+    #     if course:
+
+
 
 
 if __name__ == '__main__':

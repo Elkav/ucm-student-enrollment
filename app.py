@@ -30,7 +30,7 @@ class Course(db.Model):
     time = db.Column(db.String, nullable=False)
     students_enrolled = db.Column(db.Integer, nullable=False)
     # grade is changed to be nullable
-    grade = db.Column(db.Integer, nullable=True)
+    grade = db.Column(db.Integer, nullable=True, default=0)
     teacher = db.relationship('Teacher', backref='courses')
 
 # Teacher model
@@ -140,8 +140,9 @@ def show_user_page(username, password):
 
     return "404"
 
+# All functionalities of Student
 @app.route('/student/<string:username>')
-def show_student_courses(username):
+def show_all_courses_registered(username):
     student = Student.query.filter_by(username=username).first()
     if student:
         courses = Course.query.filter_by(student_id=student.id).all()
@@ -153,7 +154,7 @@ def show_student_courses(username):
         return jsonify({"error": "Student not found"}), 400
 
 @app.route('/student/<string:username>/<string:course_name>', methods=['POST'])
-def add_course_by_student(username, course_name):
+def register_course(username, course_name):
     student = Student.query.filter_by(username=username).first()
     if student:
         course = Course.query.filter_by(course_name=course_name).first()
@@ -179,18 +180,70 @@ def add_course_by_student(username, course_name):
 
 
 @app.route('/teacher/<string:username>/<string:course_name>', methods=['DELETE'])
-def delete_course_by_student(username, course_name):
+def drop_course(username, course_name):
     student = Student.query.filter_by(username=username).first()
     if student:
         course = Course.query.filter_by(course_name=course_name, student_id=student.id).first()
         if course:
             db.session.delete(course)
             db.session.commit()
-            return jsonify({'success': 'deleted'}), 200
+            return jsonify({'success': 'course drops successfully'}), 200
         else:
             return jsonify({"error": "Course not found"}), 404
     else:
         return jsonify({"error": "Student not found"}), 404
+
+# All functionalities of Teacher
+@app.route('/teacher/<string:username>')
+def show_all_courses_taught(username):
+    teacher = Teacher.query.filter_by(username=username).first()
+    if teacher:
+        courses_taught = Course.query.filter_by(teacher_id=teacher.id).all()
+        if len(courses_taught) > 0:
+            course_dict = {}
+            for course in courses_taught:
+                course_dict[course.course_name] = [course.time, course.students_enrolled]
+            return jsonify(course_dict), 200
+        else:
+            return jsonify({"error": "Teacher did not teach any course"}), 404
+    else:
+        return jsonify({"error": "Teacher not found"}), 404
+
+@app.route('/teacher/<string:username>/<string:course_name>')
+def show_all_students_in_one_course(username, course_name):
+    teacher = Teacher.query.filter_by(username=username).first()
+    if teacher:
+        particular_course = Course.query.filter_by(course_name=course_name, teacher_id=teacher.id).all()
+        if len(particular_course) > 0:
+            student_dict = {}
+            for one_stance in particular_course:
+                if one_stance.student_id is not None:
+                    student_name = Student.query.filter_by(id=one_stance.student_id).first().legal_name
+                    student_dict[student_name] = one_stance.grade
+            return jsonify(student_dict), 200
+        else:
+            return jsonify({"error": "Teacher did not teach this course"}), 404
+    else:
+        return jsonify({"error": "Teacher not found"}), 404
+
+@app.route('/teacher/<string:username>/<string:course_name>/<string:student_name>/<int:grade>', methods=['POST'])
+def change_student_grade(username, course_name, student_name, grade):
+    teacher = Teacher.query.filter_by(username=username).first()
+    if teacher:
+        student_id = Student.query.filter_by(legal_name=student_name).first().id
+        student_in_course = Course.query.filter_by(
+            course_name=course_name,
+            teacher_id=teacher.id,
+            student_id=student_id
+        ).first()
+        if student_in_course:
+            student_in_course.grade = grade
+            db.session.commit()
+            return jsonify({'success': 'student grade updates successfully'}), 200
+        else:
+            return jsonify({"error": "Student not found"}), 404
+    else:
+        return jsonify({"error": "Teacher not found"}), 404
 
 if __name__ == '__main__':
     with app.app_context():

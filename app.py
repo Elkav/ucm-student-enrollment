@@ -24,10 +24,12 @@ class Course(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False)
+    # student_id is changed to be nullable
     student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=True)
     course_name = db.Column(db.String, nullable=False)
     time = db.Column(db.String, nullable=False)
     students_enrolled = db.Column(db.Integer, nullable=False)
+    # grade is changed to be nullable
     grade = db.Column(db.Integer, nullable=True)
     teacher = db.relationship('Teacher', backref='courses')
 

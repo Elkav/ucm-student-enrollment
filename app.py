@@ -68,11 +68,15 @@ class AdminUser(db.Model):
         return {
             "username": self.username
         }
+    
+class MyModelView(ModelView):
+    column_list = ('course_name', 'teacher_id', 'time', 'students_enrolled', 'grade')
+    form_columns = ('course_name', 'teacher_id', 'time', 'students_enrolled', 'grade')
 
 # Admin views to create, read, update, and delete
 admin.add_view(ModelView(Student, db.session))
 admin.add_view(ModelView(Teacher, db.session))
-admin.add_view(ModelView(Course, db.session))
+admin.add_view(MyModelView(Course, db.session))
 
 @app.route('/')
 def index():

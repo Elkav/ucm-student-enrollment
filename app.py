@@ -42,14 +42,6 @@ class Student(db.Model):
             "legal_name": self.legal_name,
             "teachers": self.teachers,
         }
-    
-class Admin(db.Model): # subclass of User
-    id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    __mapper_args__ = {
-        'polymorphic_identity':'admin',
-    }
-    def __repr__(self):
-        return '<Admin %r>' % self.username
 
 @app.route('/')
 def index():

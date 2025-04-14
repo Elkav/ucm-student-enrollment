@@ -47,6 +47,10 @@ function signIn() {
         .catch(err => console.error(err));
 }
 
+function createCourse(){
+    
+}
+
 function showMyCourse_student() {
 
 }

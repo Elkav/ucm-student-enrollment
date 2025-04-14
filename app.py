@@ -138,6 +138,11 @@ def show_user_page(username, password):
 
     return "404"
 
+@app.route('/student/<string:username>', methods=['GET', 'POST'])
+def show_student_courses(username):
+    student = Student.query.filter_by(username=username).first()
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()  # Create the database tables

@@ -28,7 +28,7 @@ class Course(db.Model):
     course_name = db.Column(db.String, nullable=False)
     time = db.Column(db.String, nullable=False)
     students_enrolled = db.Column(db.Integer, nullable=False)
-    grade = db.Column(db.Integer, nullable=False)
+    grade = db.Column(db.Integer, nullable=True)
     teacher = db.relationship('Teacher', backref='courses')
 
 # Teacher model
@@ -150,15 +150,45 @@ def show_student_courses(username):
     else :
         return jsonify({"error": "Student not found"}), 400
 
-@app.route('/student/<string:username>/<string:course_name>')
-def add_course_student(username, course_name):
+@app.route('/student/<string:username>/<string:course_name>', methods=['POST'])
+def add_course_by_student(username, course_name):
     student = Student.query.filter_by(username=username).first()
-    # if student:
-    #     course = Course.query.filter_by(course_name=course_name).first()
-    #     if course:
+    if student:
+        course = Course.query.filter_by(course_name=course_name).first()
+        if course:
+            if course.student_id is None:
+                course.student_id = student.id
+                db.session.commit()
+            else:
+                new_instance = Course(
+                    teacher_id=course.teacher_id,
+                    student_id=student.id,
+                    course_name=course_name,
+                    time=course.time,
+                    students_enrolled=course.students_enrolled,
+                )
+                db.session.add(new_instance)
+                db.session.commit()
+            return jsonify({'success': 'change made'}), 200
+        else:
+            return jsonify({"error": "Course not found"}), 404
+    else:
+        return jsonify({"error": "Student not found"}), 404
 
 
-
+@app.route('/teacher/<string:username>/<string:course_name>', methods=['DELETE'])
+def delete_course_by_student(username, course_name):
+    student = Student.query.filter_by(username=username).first()
+    if student:
+        course = Course.query.filter_by(course_name=course_name, student_id=student.id).first()
+        if course:
+            db.session.delete(course)
+            db.session.commit()
+            return jsonify({'success': 'deleted'}), 200
+        else:
+            return jsonify({"error": "Course not found"}), 404
+    else:
+        return jsonify({"error": "Student not found"}), 404
 
 if __name__ == '__main__':
     with app.app_context():

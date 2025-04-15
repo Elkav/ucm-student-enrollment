@@ -9,6 +9,26 @@
     <div>
         <button onclick="showMyCourse_student()">My Course</button>
         <button onclick="showAllCourse_student()">All Course</button>
+
+        <div id="myDIV">
+            <h3>Add Courses</h3>
+            <table>
+                <tr>
+                    <th>Course name</th>
+                    <th>Teacher</th>
+                    <th>Time</th>
+                    <th>Students Enrolled</th>
+                </tr>
+                {%for course in courses %}
+                <tr>
+                    <td>{{course.course_name}}</td>
+                    <td>{{course.teacher}}</td>
+                    <td>{{course.time}}</td>
+                    <td>{{course.students_enrolled}}</td>
+                </tr>
+                {%endfor%}
+            </table>
+        </div>
     </div>
     <div>
         <button onclick="signOut()">Sign Out</button>

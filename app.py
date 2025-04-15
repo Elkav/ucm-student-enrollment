@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.associationproxy import association_proxy
 from flask_admin import Admin
 from flask_admin.base import MenuLink
 from flask_admin.contrib.sqla import ModelView
@@ -7,7 +8,7 @@ import secrets
 
 # Deleted migrate temporarily
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.sqlite4'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.sqlite3'
 db = SQLAlchemy(app)
 # app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 app.config['SECRET_KEY'] = secrets.token_hex(16)  # Generates a 32-character random key
@@ -31,14 +32,14 @@ class Registration(db.Model):  # handles relationships between students, courses
 
 
 class Course(db.Model):
-    __tablename__ = 'courses'
+    __tablename__ = 'course'
     id = db.Column(db.Integer, primary_key=True)
     course_name = db.Column(db.String(), unique=True, nullable=False)
     time = db.Column(db.String())
     # for the 1-to-many relationship btwn course and teacher
     teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
     registration = db.relationship('Registration', back_populates='course')
-    students = db.association_proxy('registration', 'student')
+    students = association_proxy('registration', 'student')
     max_students = db.Column(db.Integer, nullable=False)
 
     def to_dict(self):
@@ -72,7 +73,7 @@ class Student(User):
     __tablename__ = 'student'
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     registration = db.relationship('Registration', back_populates='student')
-    courses = db.association_proxy('registration', 'course')
+    courses = association_proxy('registration', 'course')
     __mapper_args__ = {
         'polymorphic_identity': 'student',
     }

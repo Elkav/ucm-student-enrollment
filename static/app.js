@@ -1,18 +1,18 @@
 const url = "http://127.0.0.1:5000";
 let username = "";
 
-// function create_account() {
-//     fetch(`${url}/create`)
-//         .then(response => response.text())
-//         .then(data => {
-//             document.open();
-//             document.write(data);
-//             document.close();
-//         })
-//         .catch(err => console.error(err));
-// }
-
 function create_account() {
+    fetch(`${url}/create`)
+        .then(response => response.text())
+        .then(data => {
+            document.open();
+            document.write(data);
+            document.close();
+        })
+        .catch(err => console.error(err));
+}
+
+function create() {
     let create_username = document.getElementById("username").value;
     let create_password = document.getElementById("password").value;
     let create_legal_name = document.getElementById("legal_name").value;
@@ -29,7 +29,7 @@ function create_account() {
         })
     })
         .then(response => response.json())
-        .then(() => {})
+        .then(() => {signIn();})
         .catch(() => {});
 }
 

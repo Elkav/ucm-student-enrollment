@@ -25,9 +25,10 @@ class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False)
     # student_id is changed to be nullable
-    student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=True)
+    # student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=False)
     course_name = db.Column(db.String, nullable=False)
     time = db.Column(db.String, nullable=False)
+    #add a max students
     students_enrolled = db.Column(db.Integer, nullable=False)
     # grade is changed to be nullable
     grade = db.Column(db.Integer, nullable=True, default=0)
@@ -72,8 +73,8 @@ class AdminUser(db.Model):
         }
     
 class MyModelView(ModelView):
-    column_list = ('course_name', 'teacher_id', 'time', 'students_enrolled', 'grade')
-    form_columns = ('course_name', 'teacher_id', 'time', 'students_enrolled', 'grade')
+    column_list = ('course_name', 'teacher_id', 'time', 'students_enrolled')
+    form_columns = ('course_name', 'teacher_id', 'time', 'students_enrolled')
 
 # Admin views to create, read, update, and delete
 admin.add_view(ModelView(Student, db.session))

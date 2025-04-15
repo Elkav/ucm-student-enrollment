@@ -62,7 +62,13 @@ function showMyCourse_student() {
 }
 
 function showAllCourse_student() {
-
+    fetch(`${url}/student`)
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(err => {
+            console.log(user_name)
+            console.error(err)
+        });
 }
 
 function showMyCourse_teacher() {

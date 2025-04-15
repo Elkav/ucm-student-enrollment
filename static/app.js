@@ -16,7 +16,7 @@ function create() {
     let create_username = document.getElementById("username").value;
     let create_password = document.getElementById("password").value;
     let create_legal_name = document.getElementById("legal_name").value;
-    let statue = document.getElementById("statue").value;
+    let role = document.getElementById("role").value;
 
     fetch(`${url}/create`, {
         method: 'POST',
@@ -25,7 +25,7 @@ function create() {
             "username": create_username,
             "password": create_password,
             "legal_name": create_legal_name,
-            "statue": statue,
+            "role": role,
         })
     })
         .then(response => response.json())
@@ -42,13 +42,9 @@ function signIn() {
             document.open();
             document.write(data);
             document.close();
-            user_name = enter_username
+            user_name = enter_username;
         })
         .catch(err => console.error(err));
-}
-
-function createCourse(){
-    
 }
 
 function showMyCourse_student() {
@@ -62,11 +58,22 @@ function showMyCourse_student() {
 }
 
 function showAllCourse_student() {
-
+    fetch(`${url}/courses`)
+        .then(response => response.json())
+        .then(data => {
+            console.table(data);
+        })
+        .catch(err => console.error(err));
 }
 
 function showMyCourse_teacher() {
-
+    fetch(`${url}/teacher/${user_name}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log(user_name)
+            console.table(data);
+        })
+        .catch(err => console.error(err));
 }
 
 function signOut() {
@@ -77,6 +84,7 @@ function signOut() {
             document.write(data);
             document.close();
             user_name = "";
+            user_role = "";
         })
         .catch(err => console.error(err));
 }

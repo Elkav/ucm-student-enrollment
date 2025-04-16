@@ -5,7 +5,7 @@ from flask_admin import Admin
 from flask_admin.base import MenuLink
 from flask_admin.contrib.sqla import ModelView
 from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
-import os
+from wtforms.fields import SelectField
 import secrets
 
 # Deleted migrate temporarily
@@ -137,7 +137,22 @@ class MyModelView(ModelView):
 
 class AModelView(ModelView):
     column_list = ('username', 'password', 'legal_name', 'role')
-    form_columns = ('username', 'password', 'legal_name','password', 'role')
+    form_columns = ('username', 'password', 'legal_name', 'role')
+
+    form_overrides = {
+        'role': SelectField
+    }
+
+    form_args = {
+        'role': {
+            'choices': [
+                ('student', 'Student'), 
+                ('teacher', 'Teacher'), 
+                ('admin', 'Admin')
+            ]
+        }
+    }
+    
     def on_model_change(self, form, model, is_created):
         if 'password' in form:
             raw_password = form.password.data

@@ -101,9 +101,13 @@ function showAllCourses_student() {
   }
 }
 
+// let something = showMyCourses_teacher();
+
+// document.getElementById("demo").innerHTML = something;
+
 function showMyCourses_teacher() {
-    var x = document.getElementById("displayReg");
-    if (x.style.display == "none") {
+    var something = document.getElementById("demo");
+    if(x.style.display === "none"){
         fetch(`${url}/teacher/${username}`)
         .then(response => response.json())
         .then(data => {
@@ -111,8 +115,6 @@ function showMyCourses_teacher() {
             console.table(data);
         })
         .catch(err => console.error(err));
-    } else {
-        x.style.display = "none";
     }
 }
 

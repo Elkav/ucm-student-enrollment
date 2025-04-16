@@ -81,15 +81,17 @@ function showAllCourses_student() {
         fetch(`${url}/courses`)
             .then(response => response.json())
             .then(data => {
+                console.log(data);
                 const tableBody = document.getElementById("courseTableBody");
                 tableBody.innerHTML = "";
-                Object.entries(data).forEach(([name, grade]) => {
+                Object.entries(data).forEach((element) => {
+                    course = element[1];
                     let row = document.createElement("tr");
                     row.innerHTML = `
-                                <td>${data["course_name"]}</td>
-                                <td>${data["teacher_id"]}</td>
-                                <td>${data["time"]}</td>
-                                <td>${data["num_students"]}/${data["max_students"]}</td>
+                                <td>${course["course_name"]}</td>
+                                <td>${course["teacher_id"]}</td>
+                                <td>${course["time"]}</td>
+                                <td>${course["num_students"]}/${course["max_students"]}</td>
                                 <td>add/drop</td>`;
                     tableBody.appendChild(row);
                 });

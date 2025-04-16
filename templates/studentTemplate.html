@@ -4,6 +4,9 @@
     <title>Student Page</title>
     <script src="../static/app.js"></script>
 </head>
+<script>
+    addEventListener("DOMContentLoaded", (event) => showMyCourses_student());
+</script>
 <body>
     <h1 id="greeting">Welcome {{ name }}!</h1>
     <div>
@@ -11,17 +14,9 @@
         <button onclick="showAllCourses_student()">Add Courses</button>
 
         <div id="courseDisplay">
-            <h3>Add Courses</h3>
+            <h3>Courses</h3>
             <table id="courseTable">
-                <thead id="courseTableHead">
-                    <tr>
-                        <th>Course Name</th>
-                        <th>Teacher</th>
-                        <th>Time</th>
-                        <th>Students Enrolled</th>
-                        <th>Add/Drop</th>
-                    </tr>
-                </thead>
+                <thead id="courseTableHead"></thead>
                 <tbody id="courseTableBody"></tbody>
             </table>
         </div>

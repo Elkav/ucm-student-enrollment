@@ -4,14 +4,18 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from flask_admin import Admin
 from flask_admin.base import MenuLink
 from flask_admin.contrib.sqla import ModelView
+from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
+from wtforms.fields import SelectField
 import secrets
 
 # Deleted migrate temporarily
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.sqlite3'
 db = SQLAlchemy(app)
-# app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
+
 app.config['SECRET_KEY'] = secrets.token_hex(16)  # Generates a 32-character random key
+
+bcrypt = Bcrypt(app)
 
 admin = Admin(app, name='Course Management', template_mode='bootstrap3')
 
@@ -28,7 +32,7 @@ class Registration(db.Model):  # handles relationships between students, courses
     course = db.relationship('Course', back_populates='registration')
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), primary_key=True)
-    grade = db.Column(db.Numeric(5, 2), nullable=True, default=0)
+    grade = db.Column(db.Numeric(5, 2), nullable=True, default=100)
 
 
 class Course(db.Model):
@@ -36,17 +40,31 @@ class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_name = db.Column(db.String(), unique=True, nullable=False)
     time = db.Column(db.String())
-    # for the 1-to-many relationship btwn course and teacher
-    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=True)
     registration = db.relationship('Registration', back_populates='course')
     students = association_proxy('registration', 'student')
     max_students = db.Column(db.Integer, nullable=False)
 
+    def __init__(self, course_name, teacher_id, time, max_students):
+        self.course_name = course_name
+        self.time = time
+        self.max_students = max_students
+        teacher = Teacher.query.get(teacher_id)
+        if teacher:
+            self.teacher = teacher
+        else:
+            self.teacher = None
+
     def to_dict(self):
+        teachername = "None"
+        if self.teacher is not None:
+            teachername = self.teacher.legal_name
+
         return {
             'course_name': self.course_name,
             'time': self.time,
             'teacher_id': self.teacher_id,
+            'teacher_name': teachername,
             'num_students': len(self.students),
             'max_students': self.max_students
         }
@@ -62,6 +80,11 @@ class User(db.Model):
         'polymorphic_identity': 'user',
         'polymorphic_on': role
     }
+
+    # def __init__(self, username, legal_name, password):
+    #     self.username = username
+    #     self.legal_name = legal_name
+    #     self.password = bcrypt.generate_password_hash(password)
 
     def to_dict(self):
         return {
@@ -121,22 +144,50 @@ class Admin(User):
             'legal_name': self.legal_name
         }
 
+class UserModelView(ModelView):
+    column_list = ('id', 'username', 'password', 'legal_name', 'role')
+    form_columns = ('username', 'password', 'legal_name', 'role')
 
-class MyModelView(ModelView):
+    form_overrides = {
+        'role': SelectField
+    }
+
+    form_args = {
+        'role': {
+            'choices': [
+                ('student', 'Student'), 
+                ('teacher', 'Teacher'), 
+                ('admin', 'Admin')
+            ]
+        }
+    }
+    def on_model_change(self, form, model, is_created):
+        if 'password' in form:
+            raw_password = form.password.data
+            model.password = bcrypt.generate_password_hash(raw_password).decode('utf-8')
+    
+
+class CourseModelView(ModelView):
     column_list = ('course_name', 'teacher_id', 'time', 'max_students')
     form_columns = ('course_name', 'teacher_id', 'time', 'max_students')
 
+class RegModelView(ModelView):
+    column_list = ('student_id', 'course_id', 'grade')
 
 # Admin views to create, read, update, and delete
-admin.add_view(ModelView(Student, db.session))
-admin.add_view(ModelView(Teacher, db.session))
-admin.add_view(MyModelView(Course, db.session))
+admin.add_view(UserModelView(User, db.session))
+admin.add_view(CourseModelView(Course, db.session))
+admin.add_view(RegModelView(Registration, db.session))
 admin.add_link(MenuLink(name='Logout', category='', url='/'))
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/login')
+def login_screen():
+    return render_template('login.html')
 
 
 # Create new user (student, teacher, or admin)
@@ -148,27 +199,27 @@ def create():
     if request.method == 'POST':
         data = request.get_json()
         username = data['username']
-        password = data['password']
+        password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
         legal_name = data['legal_name']
         role = data['role']
 
         if role == 'student':
             if Student.query.filter_by(username=username).first():
-                return 400
+                return error("Student already exists", 400)
             student = Student(username=username, password=password, legal_name=legal_name)
             db.session.add(student)
             db.session.commit()
             return jsonify(student.to_dict())
         elif role == 'teacher':
             if Teacher.query.filter_by(username=username).first():
-                return 400
+                return error("Teacher already exists", 400)
             teacher = Teacher(username=username, password=password, legal_name=legal_name)
             db.session.add(teacher)
             db.session.commit()
             return jsonify(teacher.to_dict())
         elif role == 'admin':
             if Admin.query.filter_by(username=username).first():
-                return 400
+                return error("Admin already exists", 400)
             admin = Admin(username=username, password=password, legal_name=legal_name)
             db.session.add(admin)
             db.session.commit()
@@ -181,12 +232,12 @@ def create():
 @app.route('/<string:username>/<string:password>')
 def show_user_page(username, password):
     user = User.query.filter_by(username=username).first()
-    if user and user.password == password:
+    if user and bcrypt.check_password_hash(user.password.encode('utf-8'), password):
         if user.role == 'admin':
             return redirect('/admin')
         else:
             return render_template(f'{user.role}Template.html', name=user.legal_name)
-    return error('Student not found')
+    return error('Invalid username or password')
 
 
 @app.route('/courses')
@@ -203,7 +254,7 @@ def show_courses_registered(username):
     student = Student.query.filter_by(username=username).first()
     if student:
         courses = student.courses
-        return jsonify([course.to_dict() for course in courses]), 200
+        return jsonify([{**course.to_dict(), "grade": student.get_grade(course.course_name)} for course in courses]), 200
     else:
         return error('Student not found')
 

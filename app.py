@@ -4,9 +4,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from flask_admin import Admin
 from flask_admin.base import MenuLink
 from flask_admin.contrib.sqla import ModelView
-from flask_wtf.csrf import CSRFProtect
-from flask_bcrypt import Bcrypt
-from flask_login import login_user, current_user, logout_user, login_required
+from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
 import os
 import secrets
 
@@ -14,18 +12,10 @@ import secrets
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.sqlite3'
 db = SQLAlchemy(app)
-# app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
+
 app.config['SECRET_KEY'] = secrets.token_hex(16)  # Generates a 32-character random key
 
-csrf = CSRFProtect(app)
 bcrypt = Bcrypt(app)
-
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-login_manager.login_message_category = 'info'
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
 admin = Admin(app, name='Course Management', template_mode='bootstrap3')
 
@@ -76,6 +66,11 @@ class User(db.Model):
         'polymorphic_identity': 'user',
         'polymorphic_on': role
     }
+
+    # def __init__(self, username, legal_name, password):
+    #     self.username = username
+    #     self.legal_name = legal_name
+    #     self.password = bcrypt.generate_password_hash(password)
 
     def to_dict(self):
         return {
@@ -140,11 +135,19 @@ class MyModelView(ModelView):
     column_list = ('course_name', 'teacher_id', 'time', 'max_students')
     form_columns = ('course_name', 'teacher_id', 'time', 'max_students')
 
+class AModelView(ModelView):
+    column_list = ('username', 'password', 'legal_name', 'role')
+    form_columns = ('username', 'password', 'legal_name','password', 'role')
+    def on_model_change(self, form, model, is_created):
+        if 'password' in form:
+            raw_password = form.password.data
+            model.password = bcrypt.generate_password_hash(raw_password).decode('utf-8')
+
 
 # Admin views to create, read, update, and delete
 # admin.add_view(ModelView(Student, db.session))
 # admin.add_view(ModelView(Teacher, db.session))
-admin.add_view(ModelView(User, db.session))
+admin.add_view(AModelView(User, db.session))
 admin.add_view(MyModelView(Course, db.session))
 admin.add_link(MenuLink(name='Logout', category='', url='/'))
 
@@ -163,11 +166,9 @@ def create():
     if request.method == 'POST':
         data = request.get_json()
         username = data['username']
-        password = data['password']
+        password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
         legal_name = data['legal_name']
         role = data['role']
-
-        # hashed_password = bcrypt.generate_password_hash(raw_password).decode('utf-8') #may have to change utf-8 to the other thing
 
         if role == 'student':
             if Student.query.filter_by(username=username).first():
@@ -178,14 +179,14 @@ def create():
             return jsonify(student.to_dict())
         elif role == 'teacher':
             if Teacher.query.filter_by(username=username).first():
-                return 400
+                return error("Teacher already exists", 400)
             teacher = Teacher(username=username, password=password, legal_name=legal_name)
             db.session.add(teacher)
             db.session.commit()
             return jsonify(teacher.to_dict())
         elif role == 'admin':
             if Admin.query.filter_by(username=username).first():
-                return 400
+                return error("Admin already exists", 400)
             admin = Admin(username=username, password=password, legal_name=legal_name)
             db.session.add(admin)
             db.session.commit()
@@ -198,12 +199,12 @@ def create():
 @app.route('/<string:username>/<string:password>')
 def show_user_page(username, password):
     user = User.query.filter_by(username=username).first()
-    if user and user.password == password:
+    if user and bcrypt.check_password_hash(user.password.encode('utf-8'), password):
         if user.role == 'admin':
             return redirect('/admin')
         else:
             return render_template(f'{user.role}Template.html', name=user.legal_name)
-    return error('Student not found')
+    return error('Invalid username or password')
 
 
 @app.route('/courses')

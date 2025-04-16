@@ -187,8 +187,31 @@ class CourseModelView(ModelView):
     column_list = ('id', 'course_name', 'teacher_id', 'time', 'max_students')
     form_columns = ('course_name', 'teacher_id', 'time', 'max_students')
 
+    def validate_form(self, form):
+        if hasattr(form, 'teacher_id') and form.teacher_id.data:
+            teacher = User.query.filter_by(id=form.teacher_id.data, role='teacher').first()
+            if not teacher:
+                form.teacher_id.errors = ['Invalid teacher ID. Please select a valid teacher.']
+                return False
+        return super().validate_form(form)
+
 class RegModelView(ModelView):
     column_list = ('student_id', 'course_id', 'grade')
+    form_columns = ('student_id', 'course_id', 'grade')
+
+    def validate_form(self, form):
+        if hasattr(form, 'student_id') and form.student_id.data:
+            student = User.query.filter_by(id=form.student_id.data, role='student').first()
+            if not student:
+                form.student_id.errors = ['Invalid student ID. Please select a valid student.']
+                return False
+        if hasattr(form, 'course_id') and form.course_id.data:
+            course = Course.query.filter_by(id=form.course_id.data).first()
+            if not course:
+                form.course_id.errors = ['Invalid course ID. Please select a valid course.']
+                return False
+
+        return super().validate_form(form)
 
 # Admin views to create, read, update, and delete
 admin.add_view(UserModelView(User, db.session))

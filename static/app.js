@@ -238,7 +238,7 @@ function showMyStudents_teacher(courseName){
 function submitGrades(studentName, studentGrade, courseName){
 	console.log(`${studentName}'s grade is now ${studentGrade}`);
 
-	fetch(`${url}/teacher/${courseName}/${studentName}/${grade}`, {
+	fetch(`${url}/teacher/${courseName}/${studentName}/${studentGrade}`, {
 			method: 'PUT',
 		})
         .then(response => response.json())

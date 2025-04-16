@@ -1,53 +1,70 @@
 const url = "http://127.0.0.1:5000";
 let username = "";
 
-function create_account() {
+//load create.html template (for creating a new account)
+function createAccount() {
     fetch(`${url}/create`)
         .then(response => response.text())
         .then(data => {
             document.open();
-            document.write(data);
+            document.write(data); //NOT IDEAL to use document.write(), replace later
             document.close();
         })
         .catch(err => console.error(err));
 }
 
-function create() {
-    let create_username = document.getElementById("username").value;
-    let create_password = document.getElementById("password").value;
-    let create_legal_name = document.getElementById("legal_name").value;
+// add new user account to database
+function addUser() {
+    let name = document.getElementById("username").value;
+    let pwd = document.getElementById("password").value;
+    let legalName = document.getElementById("legal_name").value;
     let role = document.getElementById("role").value;
 
     fetch(`${url}/create`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-            "username": create_username,
-            "password": create_password,
-            "legal_name": create_legal_name,
+            "username": name,
+            "password": pwd,
+            "legal_name": legalName,
             "role": role,
         })
     })
         .then(response => response.json())
-        .then(() => {signIn();})
-        .catch(() => {});
+        .then(() => {signIn()}) // do some checks before signing in??
+        .catch(err => console.error(err));
 }
 
+// redirect to user page based on role
 function signIn() {
-    let enter_username = document.getElementById("username").value;
-    let enter_password = document.getElementById("password").value;
-    fetch(`${url}/${enter_username}/${enter_password}`)
+    let name = document.getElementById("username").value;
+    let pwd = document.getElementById("password").value;
+    fetch(`${url}/${name}/${pwd}`)
         .then(response => response.text())
         .then(data => {
+            username = name;
             document.open();
-            document.write(data);
+            document.write(data); //again, NOT IDEAL
             document.close();
-            username = enter_username;
         })
         .catch(err => console.error(err));
 }
 
-function showMyCourse_student() {
+
+function signOut() {
+    fetch(url)
+        .then(response => response.text())
+        .then(data => {
+            document.open();
+            document.write(data); //bro....... 💀💀💀
+            document.close();
+            username = "";
+        })
+        .catch(err => console.error(err));
+}
+
+
+function showMyCourses_student() {
     fetch(`${url}/student/${username}`)
         .then(response => response.json())
         .then(data => console.log(data))
@@ -57,33 +74,33 @@ function showMyCourse_student() {
         });
 }
 
-function showAllCourse_student() {
+function showAllCourses_student() {
     fetch(`${url}/courses`)
         .then(response => response.json())
         .then(data => {
-            console.table(data);
+            const tableBody = document.getElementById("courseTableBody");
+            tableBody.innerHTML = "";
+            Object.entries(data).forEach(([name, grade]) => {
+                let row = document.createElement("tr");
+                row.innerHTML = `
+                            <td>${data["course_name"]}</td>
+                            <td>${data["teacher_id"]}</td>
+                            <td>${data["time"]}</td>
+                            <td>${data["num_students"]}/${data["max_students"]}</td>
+                            <td>add/drop</td>`;
+                tableBody.appendChild(row);
+            });
+            console.log(tableBody);
         })
         .catch(err => console.error(err));
 }
 
-function showMyCourse_teacher() {
+function showMyCourses_teacher() {
     fetch(`${url}/teacher/${username}`)
         .then(response => response.json())
         .then(data => {
             console.log(username)
             console.table(data);
-        })
-        .catch(err => console.error(err));
-}
-
-function signOut() {
-    fetch(url)
-        .then(response => response.text())
-        .then(data => {
-            document.open();
-            document.write(data);
-            document.close();
-            username = "";
         })
         .catch(err => console.error(err));
 }

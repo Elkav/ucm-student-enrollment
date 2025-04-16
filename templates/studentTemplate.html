@@ -7,26 +7,22 @@
 <body>
     <h1 id="greeting">Welcome {{ name }}!</h1>
     <div>
-        <button onclick="showMyCourse_student()">My Course</button>
-        <button onclick="showAllCourse_student()">All Course</button>
+        <button onclick="showMyCourses_student()">My Courses</button>
+        <button onclick="showAllCourses_student()">Add Courses</button>
 
-        <div id="myDIV">
+        <div id="courseDisplay">
             <h3>Add Courses</h3>
-            <table>
-                <tr>
-                    <th>Course name</th>
-                    <th>Teacher</th>
-                    <th>Time</th>
-                    <th>Students Enrolled</th>
-                </tr>
-                {%for course in courses %}
-                <tr>
-                    <td>{{course.course_name}}</td>
-                    <td>{{course.teacher}}</td>
-                    <td>{{course.time}}</td>
-                    <td>{{course.students_enrolled}}</td>
-                </tr>
-                {%endfor%}
+            <table id="courseTable">
+                <thead id="courseTableHead">
+                    <tr>
+                        <th>Course Name</th>
+                        <th>Teacher</th>
+                        <th>Time</th>
+                        <th>Students Enrolled</th>
+                        <th>Add/Drop</th>
+                    </tr>
+                </thead>
+                <tbody id="courseTableBody"></tbody>
             </table>
         </div>
     </div>

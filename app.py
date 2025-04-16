@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.associationproxy import association_proxy
 from flask_admin import Admin
@@ -178,10 +178,34 @@ class UserModelView(ModelView):
             ]
         }
     }
-
     def on_model_change(self, form, model, is_created):
         if is_created:
             model.password = bcrypt.generate_password_hash(model.password).decode('utf-8')
+
+    def on_model_delete(self, model):
+        if model.role == 'student':
+            reg = Registration.query.filter_by(student_id=model.id).first()
+            if reg:
+                raise Exception("Cannot delete: Student is registered in a course.")
+        elif model.role == 'teacher':
+            course = Course.query.filter_by(teacher_id=model.id).first()
+            if course:
+                raise Exception("Cannot delete: Teacher is assigned to one or more courses.")
+
+    def delete_model(self, model):
+        try:
+            if model.role == 'student':
+                if Registration.query.filter_by(student_id=model.id).first():
+                    flash('Cannot delete student: They are registered in a course.', 'error')
+                    return False
+            elif model.role == 'teacher':
+                if Course.query.filter_by(teacher_id=model.id).first():
+                    flash('Cannot delete teacher: They are assigned to a course.', 'error')
+                    return False
+            return super().delete_model(model)
+        except Exception as e:
+            flash(str(e), 'error')
+            return False
 
 class CourseModelView(ModelView):
     column_list = ('id', 'course_name', 'teacher_id', 'time', 'max_students')
@@ -194,6 +218,21 @@ class CourseModelView(ModelView):
                 form.teacher_id.errors = ['Invalid teacher ID. Please select a valid teacher.']
                 return False
         return super().validate_form(form)
+
+    def on_model_delete(self, model):
+        reg = Registration.query.filter_by(course_id=model.id).first()
+        if reg:
+            raise Exception("Cannot delete: Course has students registered.")
+
+    def delete_model(self, model):
+        try:
+            if Registration.query.filter_by(course_id=model.id).first():
+                flash('Cannot delete course: Students are still registered.', 'error')
+                return False
+            return super().delete_model(model)
+        except Exception as e:
+            flash(str(e), 'error')
+            return False
 
 class RegModelView(ModelView):
     column_list = ('student_id', 'course_id', 'grade')

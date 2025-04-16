@@ -8,7 +8,6 @@ from flask_admin.contrib.sqla import ModelView
 from flask_migrate import Migrate
 import secrets
 
-
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///example.sqlite4"
 db = SQLAlchemy(app)
@@ -18,20 +17,21 @@ migrate = Migrate(app, db)
 
 admin = Admin(app, name='Class Management', template_mode='bootstrap3')
 
+
 # Course model (previously a db.Table)
 class Course(db.Model):
     __tablename__ = 'courses'
 
     id = db.Column(db.Integer, primary_key=True)
     teacher_id = db.Column(db.Integer, db.ForeignKey("teacher.id"), nullable=False)
-    # student_id is changed to be nullable
-    student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=True)
+    student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=True, default=0)
     course_name = db.Column(db.String, nullable=False)
     time = db.Column(db.String, nullable=False)
     students_enrolled = db.Column(db.Integer, nullable=False)
-    # grade is changed to be nullable
     grade = db.Column(db.Integer, nullable=True, default=0)
     teacher = db.relationship('Teacher', backref='courses')
+    student = db.relationship('Student', backref='courses')
+
 
 # Teacher model
 class Teacher(db.Model):
@@ -39,11 +39,12 @@ class Teacher(db.Model):
     username = db.Column(db.String(), unique=True, nullable=False)
     password = db.Column(db.String(), nullable=False)
     legal_name = db.Column(db.String(), nullable=False)
-    
+
     def to_dict(self):
         return {
             "legal_name": self.legal_name,
         }
+
 
 # Student model
 class Student(db.Model):
@@ -51,11 +52,12 @@ class Student(db.Model):
     username = db.Column(db.String(), unique=True, nullable=False)
     password = db.Column(db.String(), nullable=False)
     legal_name = db.Column(db.String(), nullable=False)
-    
+
     def to_dict(self):
         return {
             "legal_name": self.legal_name,
         }
+
 
 # AdminUser model
 # so far not being used
@@ -65,15 +67,17 @@ class AdminUser(db.Model):
     username = db.Column(db.String(), unique=True, nullable=False)
     password = db.Column(db.String(), nullable=False)
     legal_name = db.Column(db.String(), nullable=False)
-    
+
     def to_dict(self):
         return {
             "username": self.username
         }
-    
+
+
 class MyModelView(ModelView):
-    column_list = ('course_name', 'teacher_id', 'time', 'students_enrolled', 'grade')
-    form_columns = ('course_name', 'teacher_id', 'time', 'students_enrolled', 'grade')
+    column_list = ('course_name', 'teacher_id', 'student_id', 'time', 'students_enrolled', 'grade')
+    form_columns = ('course_name', 'teacher_id','student_id', 'time', 'students_enrolled', 'grade')
+
 
 # Admin views to create, read, update, and delete
 admin.add_view(ModelView(Student, db.session))
@@ -81,9 +85,11 @@ admin.add_view(ModelView(Teacher, db.session))
 admin.add_view(MyModelView(Course, db.session))
 admin.add_link(MenuLink(name='Logout', category='', url='/'))
 
+
 @app.route('/')
 def index():
     return render_template("index.html")
+
 
 # Create new user (student, teacher, or admin)
 @app.route('/create', methods=['GET', 'POST'])
@@ -97,7 +103,7 @@ def create():
         password = data["password"]
         legal_name = data["legal_name"]
         statue = data["statue"]
-        
+
         if statue == 'student':
             if Student.query.filter_by(username=username).first():
                 return "400"
@@ -122,6 +128,7 @@ def create():
         else:
             return "404"
 
+
 # User page routing
 @app.route('/<string:username>/<string:password>')
 def show_user_page(username, password):
@@ -140,18 +147,37 @@ def show_user_page(username, password):
 
     return "404"
 
+def convert_to_dict(courses):
+    course_dict = {}
+    for course in courses:
+        total_students = Course.query.filter_by(id=course.id).count()
+        percentage = str(total_students) + '/' + str(course.students_enrolled)
+        course_dict[course.course_name] = [course.time, percentage]
+    return course_dict
+
 # All functionalities of Student
 @app.route('/student/<string:username>')
 def show_all_courses_registered(username):
     student = Student.query.filter_by(username=username).first()
     if student:
         courses = Course.query.filter_by(student_id=student.id).all()
-        course_dict = {}
-        for course in courses:
-            course_dict[course.course_name] = course.time
-        return jsonify(course_dict), 200
-    else :
+        return jsonify(convert_to_dict(courses)), 200
+    else:
         return jsonify({"error": "Student not found"}), 400
+
+@app.route('/courses/<string:username>')
+def show_all_courses_published(username):
+    courses = Course.query.filter_by().all()
+    student_id = Student.query.filter_by(username=username).first().id
+    course_dict = {}
+    for course in courses:
+        total_students = Course.query.filter_by(id=course.id).count()
+        percentage = str(total_students) + '/' + str(course.students_enrolled)
+        registered = 'NO'
+        if Course.query.filter_by(id=course.id, student_id=student_id).first():
+            registered = 'YES'
+        course_dict[course.course_name] = [course.time, percentage, registered]
+    return jsonify(course_dict), 200
 
 @app.route('/student/<string:username>/<string:course_name>', methods=['POST'])
 def register_course(username, course_name):
@@ -193,6 +219,7 @@ def drop_course(username, course_name):
     else:
         return jsonify({"error": "Student not found"}), 404
 
+
 # All functionalities of Teacher
 @app.route('/teacher/<string:username>')
 def show_all_courses_taught(username):
@@ -200,14 +227,12 @@ def show_all_courses_taught(username):
     if teacher:
         courses_taught = Course.query.filter_by(teacher_id=teacher.id).all()
         if len(courses_taught) > 0:
-            course_dict = {}
-            for course in courses_taught:
-                course_dict[course.course_name] = [course.time, course.students_enrolled]
-            return jsonify(course_dict), 200
+            return jsonify(convert_to_dict(courses_taught)), 200
         else:
             return jsonify({"error": "Teacher did not teach any course"}), 404
     else:
         return jsonify({"error": "Teacher not found"}), 404
+
 
 @app.route('/teacher/<string:username>/<string:course_name>')
 def show_all_students_in_one_course(username, course_name):
@@ -225,6 +250,7 @@ def show_all_students_in_one_course(username, course_name):
             return jsonify({"error": "Teacher did not teach this course"}), 404
     else:
         return jsonify({"error": "Teacher not found"}), 404
+
 
 @app.route('/teacher/<string:username>/<string:course_name>/<string:student_name>/<int:grade>', methods=['POST'])
 def change_student_grade(username, course_name, student_name, grade):
@@ -244,6 +270,7 @@ def change_student_grade(username, course_name, student_name, grade):
             return jsonify({"error": "Student not found"}), 404
     else:
         return jsonify({"error": "Teacher not found"}), 404
+
 
 if __name__ == '__main__':
     with app.app_context():

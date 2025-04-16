@@ -50,7 +50,25 @@ function signIn() {
 function showMyCourse_student() {
     fetch(`${url}/student/${username}`)
         .then(response => response.json())
-        .then(data => console.log(data))
+        .then(data => {
+            const table_name = document.getElementById('tableDisplay');
+            const table_body = document.getElementById('tableBody');
+            const head_content = `<tr>
+                    <td>Course Name</td>
+                    <td>Time</td>
+                    <td>Students Enrolled</td>
+                </tr>`
+            table_name.innerHTML = head_content;
+            table_body.innerHTML = '';
+            for (const [course, [time, students]] of Object.entries(data)) {
+                const row = `<tr>
+                    <td>${course}</td>
+                    <td>${time}</td>
+                    <td>${students}</td>
+                </tr>`;
+                table_body.innerHTML += row;
+            }
+        })
         .catch(err => {
             console.log(username)
             console.error(err)
@@ -58,10 +76,28 @@ function showMyCourse_student() {
 }
 
 function showAllCourse_student() {
-    fetch(`${url}/courses`)
+    fetch(`${url}/courses/${username}`)
         .then(response => response.json())
         .then(data => {
-            console.table(data);
+            const head = document.getElementById('tableDisplay');
+            const table_body = document.getElementById('tableBody');
+            const head_content = `<tr>
+                    <td>Course Name</td>
+                    <td>Time</td>
+                    <td>Students Enrolled</td>
+                    <td>Register</td>
+                </tr>`
+            head.innerHTML = head_content;
+            table_body.innerHTML = ''
+            for (const [course, [time, students, registered]] of Object.entries(data)) {
+                const row = `<tr>
+                    <td>${course}</td>
+                    <td>${time}</td>
+                    <td>${students}</td>
+                    <td>${registered}</td>
+                </tr>`;
+                table_body.innerHTML += row;
+            }
         })
         .catch(err => console.error(err));
 }
@@ -70,8 +106,32 @@ function showMyCourse_teacher() {
     fetch(`${url}/teacher/${username}`)
         .then(response => response.json())
         .then(data => {
-            console.log(username)
-            console.table(data);
+            const table_name = document.getElementById('tableDisplay');
+            const table_body = document.getElementById('tableBody');
+            const head_content = '              <tr>\n' +
+                '                    <td>Course Name</td>\n' +
+                '                    <td>Time</td>\n' +
+                '                    <td>Students Enrolled</td>\n' +
+                '                </tr>;'
+            table_name.innerHTML = head_content;
+            table_body.innerHTML = ''
+            for (const [course, [time, students]] of Object.entries(data)) {
+                const row = `<tr>
+                    <td><button onclick="classInfo('${course}')">${course}</button></td>
+                    <td>${time}</td>
+                    <td>${students}</td>
+                </tr>`;
+                table_body.innerHTML += row;
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+function classInfo(course) {
+        fetch(`${url}/teacher/${username}/${course}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data)
         })
         .catch(err => console.error(err));
 }

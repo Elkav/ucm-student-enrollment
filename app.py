@@ -20,10 +20,10 @@ bcrypt = Bcrypt(app)
 admin = Admin(app, name='Course Management', template_mode='bootstrap3')
 
 def error(message, status=404):
-    return jsonify({'Error': message}), status
+    return jsonify({'error': message}), status
 
 def success(message, status=200):
-    return jsonify({'Success': message}), status
+    return jsonify({'success': message}), status
 
 class Registration(db.Model):  # handles relationships between students, courses, and grades
     #### switch back to backref if not using laziness
@@ -228,7 +228,7 @@ def show_user_page(username, password):
             return redirect('/admin')
         else:
             return render_template(f'{user.role}Template.html', name=user.legal_name)
-    return error('Invalid username or password')
+    return error('Invalid username or password', 404)
 
 
 @app.route('/courses')

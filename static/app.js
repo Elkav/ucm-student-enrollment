@@ -27,6 +27,14 @@ function addUser() {
     let legalName = document.getElementById("legal_name").value;
     let role = document.getElementById("role").value;
 
+    if(name === "" || pwd === ""){
+        alert("Please enter a valid username and password");
+        return;
+    } else if(legalName === ""){
+        alert("Please enter your legal name");
+        return;
+    }
+
     fetch(`${url}/create`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -46,18 +54,27 @@ function addUser() {
 function signIn() {
     let name = document.getElementById("username").value;
     let pwd = document.getElementById("password").value;
-    fetch(`${url}/${name}/${pwd}`)
-        .then(response => response.text())
-        .then(data => {
-            username = name;
-            document.getElementById("app").innerHTML = data;
-            if (data.includes("STUDENT TEMPLATE")) {
-                showMyCourses_student();
-            } else if (data.includes("TEACHER TEMPLATE")) {
-                showMyCourses_teacher();
-            }
-        })
-        .catch(err => console.error(err));
+    if(name === "" || pwd === "")
+        alert("Invalid username or password");
+    else {
+        fetch(`${url}/${name}/${pwd}`)
+            .then(response => {
+                if (!response.ok) throw new Error("Invalid username or password");
+                return response.text();
+            })
+            .then(data => {
+                username = name;
+                document.getElementById("app").innerHTML = data;
+                if (data.includes("STUDENT TEMPLATE")) {
+                    showMyCourses_student();
+                } else if (data.includes("TEACHER TEMPLATE")) {
+                    showMyCourses_teacher();
+                }
+            })
+            .catch(err => {
+                alert(err.message);
+            });
+    }
 }
 
 
@@ -101,35 +118,45 @@ function showMyCourses_student() {
 }
 
 function showAllCourses_student() {
-    fetch(`${url}/courses`)
+    //First fetch courses the student is in (to know which "Add"s to grey out)
+    fetch(`${url}/student/${username}`)  // get the list of enrolled courses
         .then(response => response.json())
-        .then(data => {
-            document.getElementById("addCoursesTab").classList.add("active");
-            document.getElementById("myCoursesTab").classList.remove("active");
-            const tableHead = document.getElementById("courseTableHead");
-            tableHead.innerHTML = `
-                <tr>
-                    <th>Course Name</th>
-                    <th>Teacher</th>
-                    <th>Time</th>
-                    <th>Students Enrolled</th>
-                    <th> </th>
-                </tr>`;
-            const tableBody = document.getElementById("courseTableBody");
-            tableBody.innerHTML = "";
-            Object.entries(data).forEach((element) => {
-                let course = element[1];
-                let row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${course["course_name"]}</td>
-                    <td>${course["teacher_name"]}</td>
-                    <td>${course["time"]}</td>
-                    <td>${course["num_students"]}/${course["max_students"]}</td>
-                    <td><button onclick='addCourse("${course["course_name"]}")'>Add</button></td>`;
-                tableBody.appendChild(row);
-            });
+        .then(myCourses => {
+            let myCourseNames = myCourses.map(course => course['course_name']);
+            //Then fetch all courses
+            fetch(`${url}/courses`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("addCoursesTab").classList.add("active");
+                    document.getElementById("myCoursesTab").classList.remove("active");
+                    const tableHead = document.getElementById("courseTableHead");
+                    tableHead.innerHTML = `
+                        <tr>
+                            <th>Course Name</th>
+                            <th>Teacher</th>
+                            <th>Time</th>
+                            <th>Students Enrolled</th>
+                            <th> </th>
+                        </tr>`;
+                    const tableBody = document.getElementById("courseTableBody");
+                    tableBody.innerHTML = "";
+                    Object.entries(data).forEach((element) => {
+                        let course = element[1];
+                        let row = document.createElement("tr");
+                        let enrolled = myCourseNames.includes(course["course_name"]);
+                        let full = course["num_students"] === course["max_students"];
+                        row.innerHTML = `
+                            <td>${course["course_name"]}</td>
+                            <td>${course["teacher_name"]}</td>
+                            <td>${course["time"]}</td>
+                            <td>${course["num_students"]}/${course["max_students"]}</td>
+                            <td><button ${enrolled || full ? `class="disabledBtn"` : `onclick='addCourse("${course["course_name"]}")'`}>
+                            Add</button></td>`;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(err => console.error(err));
         })
-        .catch(err => console.error(err));
 }
 
 function showMyCourses_teacher() {
@@ -189,7 +216,7 @@ function showMyStudents_teacher(courseName){
                 gradeInput.addEventListener("keypress", function(event) {
 					if (event.key === "Enter"){
 						event.preventDefault(); //Prevent the default behavior (aka adding a new line)
-						grade = Number(gradeInput.innerHTML);
+						let grade = Number(gradeInput.innerHTML);
 						submitGrades(studentName, grade, courseName);
 					}
 				});

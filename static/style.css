@@ -103,6 +103,16 @@ button {
     transition: background-color 0.2s ease;
 }
 
+.disabledBtn {
+    background-color: #f0f0f0;
+    color: #ffffff;
+}
+
+.disabledBtn:hover {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
 button:hover {
     background-color: #e5b800;
 }

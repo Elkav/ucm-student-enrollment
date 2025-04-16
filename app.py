@@ -159,7 +159,7 @@ class UserModelView(ModelView):
     }
 
 class CourseModelView(ModelView):
-    column_list = ('course_id', 'course_name', 'teacher_id', 'time', 'max_students')
+    column_list = ('id', 'course_name', 'teacher_id', 'time', 'max_students')
     form_columns = ('course_name', 'teacher_id', 'time', 'max_students')
 
 class RegModelView(ModelView):

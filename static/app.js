@@ -51,9 +51,9 @@ function signIn() {
         .then(data => {
             username = name;
             document.getElementById("app").innerHTML = data;
-            if (data.includes("STUDENT")) {
+            if (data.includes("STUDENT TEMPLATE")) {
                 showMyCourses_student();
-            } else if (data.includes("TEACHER")) {
+            } else if (data.includes("TEACHER TEMPLATE")) {
                 showMyCourses_teacher();
             }
         })
@@ -111,7 +111,6 @@ function showAllCourses_student() {
                     <th>Students Enrolled</th>
                     <th> </th>
                 </tr>`;
-
             const tableBody = document.getElementById("courseTableBody");
             tableBody.innerHTML = "";
             Object.entries(data).forEach((element) => {
@@ -129,24 +128,27 @@ function showAllCourses_student() {
         .catch(err => console.error(err));
 }
 
-// let something = showMyCourses_teacher();
-
-// document.getElementById("demo").innerHTML = something;
-
 function showMyCourses_teacher() {
-	//Get table headers	
-	
     fetch(`${url}/teacher/${username}`)
         .then(response => response.json())
         .then(data => {
+            const backButton = document.getElementById("back");
+            backButton.style.display = "none";
+            const tableHead = document.getElementById("courseTableHead");
+            tableHead.innerHTML = `
+                <tr>
+                    <th>Course Name</th>
+                    <th>Teacher</th>
+                    <th>Time</th>
+                    <th>Students Enrolled</th>
+                </tr>`;
             const tableBody = document.getElementById("courseTableBody");
             tableBody.innerHTML = "";
             Object.entries(data).forEach((element) => {
-                course = element[1];
+                let course = element[1];
                 let row = document.createElement("tr");
-                row.id = course["course_name"]
                 row.innerHTML = `
-                            <td><button onclick='teacherViewCourse("${course["course_name"]}")'>${course["course_name"]}</button></td>
+                            <td><button onclick='showMyStudents_teacher("${course["course_name"]}")'>${course["course_name"]}</button></td>
                             <td>${username}</td>
                             <td>${course["time"]}</td>
                             <td>${course["num_students"]}/${course["max_students"]}</td>`
@@ -154,6 +156,59 @@ function showMyCourses_teacher() {
             });
         })
         .catch(err => console.error(err));
+}
+
+function showMyStudents_teacher(courseName){
+	fetch(`${url}/teacher/${username}/${courseName}`)
+        .then(response => response.json())
+        .then(data => {
+            const backButton = document.getElementById("back");
+            backButton.style.display = 'block';
+            const tableHead = document.getElementById("courseTableHead");
+            tableHead.innerHTML = `
+                <tr>
+                    <th>Student Name</th>
+                    <th>Grade</th>
+                </tr>`;
+            const tableBody = document.getElementById("courseTableBody");
+            tableBody.innerHTML = "";
+            Object.entries(data).forEach((element) => {
+                let studentInfo = element[1]; //Contain an object with "student name: grade" but the student name is always different
+                let studentName = Object.keys(studentInfo)[0];
+                let studentGrade = studentInfo[studentName]
+                let row = document.createElement("tr");
+                row.innerHTML = `
+                            <td>${studentName}</td>
+                            <td id="${studentName}" contenteditable="true">${studentGrade}</td>`
+                tableBody.appendChild(row);
+                let gradeInput = document.getElementById(studentName);
+                gradeInput.addEventListener("keypress", function(event) {
+					if (event.key === "Enter"){
+						event.preventDefault(); //Prevent the default behavior (aka adding a new line)
+						grade = Number(gradeInput.innerHTML);
+						submitGrades(studentName, grade, courseName);
+					}
+				});
+            });
+        })
+        .catch(err => console.error(err));
+}
+
+function submitGrades(studentName, studentGrade, courseName){
+	console.log(`${studentName}'s grade is now ${studentGrade}`);
+
+	fetch(`${url}/teacher/${username}/${courseName}/${studentName}/${grade}`, {
+			method: 'PUT',
+		})
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(err => {
+            console.log(username)
+            console.error(err)
+        });
+
+    alert("Grade has been successfully updated!")
+
 }
 
 function addCourse(courseName){
@@ -180,55 +235,4 @@ function dropCourse(courseName){
             console.log(username)
             console.error(err)
         });
-}
-
-function teacherViewCourse(courseName){
-	fetch(`${url}/teacher/${username}/${courseName}`)
-        .then(response => response.json())
-        .then(data => {
-            const tableBody = document.getElementById("courseTableBody");
-            tableBody.innerHTML = "";
-            Object.entries(data).forEach((element) => {
-                let studentInfo = element[1]; //Contain an object with "student name: grade" but the student name is always different
-                let studentName = Object.keys(studentInfo)[0];
-                let studentGrade = studentInfo[studentName]
-                //
-                let row = document.createElement("tr");
-                row.innerHTML = `
-                            <td>${studentName}</td>
-                            
-                            <td id="${studentName}" contenteditable="true">${studentGrade}</td>`
-                tableBody.appendChild(row);
-                
-                let gradeInput = document.getElementById(studentName);
-                gradeInput.addEventListener("keypress", function(event) {
-					
-					if (event.key === "Enter"){
-						event.preventDefault(); //Prevent the default behavior (aka adding a new line)
-						grade = Number(gradeInput.innerHTML);
-						
-						submitGrades(studentName, grade, courseName);
-					}
-				});
-                
-            });
-        })
-        .catch(err => console.error(err));
-}
-
-function submitGrades(studentName, studentGrade, courseName){
-	console.log(`${studentName}'s grade is now ${studentGrade}`);
-	
-	fetch(`${url}/teacher/${username}/${courseName}/${studentName}/${grade}`, {
-			method: 'PUT',
-		})
-        .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(err => {
-            console.log(username)
-            console.error(err)
-        });
-        
-    alert("Grade has been successfully updated!")
-	
 }

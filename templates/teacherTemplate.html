@@ -1,4 +1,4 @@
-<<!-- TEACHER TEMPLATE -->
+<!-- TEACHER TEMPLATE -->
 <div class="infoBox">
     <div class="infoBar">
         <h1 id="greeting">Welcome {{ name }}!</h1>
@@ -6,19 +6,11 @@
     </div>
     <div id = "demo">
         <table id="courseTable">
-            <thead id="courseTableHead">
-                <tr>
-                    <th>Course Name</th> <!-- access the students and their grade --> 
-                    <th>Teacher</th>
-                    <th>Time</th>
-                    <th>Students Enrolled</th>
-                    <!-- <th>Add/Drop</th> -->
-                </tr>
-            </thead>
+            <thead id="courseTableHead"></thead>
             <tbody id="courseTableBody"></tbody>
         </table>
     </div>
     <div>
-		<button onclick="showMyCourses_teacher()">View All Courses</button>
+		<button id="back" onclick="showMyCourses_teacher()">Back</button>
     </div>
 </div>

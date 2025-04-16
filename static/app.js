@@ -70,6 +70,8 @@ function showMyCourses_student() {
     fetch(`${url}/student/${username}`)
         .then(response => response.json())
         .then(data => {
+            document.getElementById("myCoursesTab").classList.add("active");
+            document.getElementById("addCoursesTab").classList.remove("active");
             const tableHead = document.getElementById("courseTableHead");
             tableHead.innerHTML = `
                 <tr>
@@ -102,6 +104,8 @@ function showAllCourses_student() {
     fetch(`${url}/courses`)
         .then(response => response.json())
         .then(data => {
+            document.getElementById("addCoursesTab").classList.add("active");
+            document.getElementById("myCoursesTab").classList.remove("active");
             const tableHead = document.getElementById("courseTableHead");
             tableHead.innerHTML = `
                 <tr>

@@ -5,11 +5,11 @@
         <button style="display: block;" onclick="signOut()">Sign Out</button>
     </div>
     <div>
-        <button onclick="showMyCourses_student()">My Courses</button>
-        <button onclick="showAllCourses_student()">Add Courses</button>
-
         <div id="courseDisplay">
-            <h3>Courses</h3>
+            <div class="tabButtons">
+                <button id="myCoursesTab" onclick="showMyCourses_student()">My Courses</button>
+                <button id="addCoursesTab" onclick="showAllCourses_student()">Add Courses</button>
+            </div>
             <table id="courseTable">
                 <thead id="courseTableHead"></thead>
                 <tbody id="courseTableBody"></tbody>

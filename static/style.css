@@ -1,83 +1,200 @@
-body{
-	font-family: sans-serif;
-	background-color: blanchedAlmond;
-}
-.infoBox{
-	background-color: #007ba7;
-	width: 66%;
-	margin: auto;
-	padding: 3%;
-	border-radius: 25px;
-}
-.innerInfoBox{
-	width: 50%;
-	margin: auto;
-}
-.titleText{
-	text-align: center;
-	color: white;
-	font-size: 48px;
-}
-.signInForms{
-	width: 75%;
-	margin: auto;
-	padding: 15px;
-	display: flex;
-	justify-content: space-between;
-	color: black;
-}
-.signInForms > input{
-	flex-grow: 1;
-}
-.signInForms > span{
-	padding: 5px;
-}
-#signInButton{
-	width: 75%;
-	margin: auto;
-	padding: 15px;
-	text-align: center; 
-	display: block;
-}
-button{
-	background-color: white;
+body {
+      font-family: "Poppins", sans-serif;
+    background-color: #d6e1e5;
+    margin: 0;
+    padding: 0;
+    color: #222;
 }
 
-table, tr, td, th {
-    width: 60%;
-    border: 1px solid;
-    text-align: left;
+.infoBox {
+    background-color: #ffffff;
+    width: 70%;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.infoBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+#greeting {
+    color: #086788;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.tabButtons {
+    display: flex;
+    width: 95%;
+    margin: 0 auto 10px auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border: 1px solid #ddd;
+}
+
+.tabButtons button {
+    flex: 1;
+    margin: 0;
+    border-radius: 0;
+    font-size: 18px;
+    background-color: #f0f0f0;
+    border: none;
+    padding: 15px;
+    color: #000;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.tabButtons button:hover {
+    background-color: #e0e0e0;
+}
+
+.tabButtons .active {
+    background-color: #086788;
+    color: #ffffff;
+}
+
+.tabButtons .active:hover {
+	background-color: #3490af;
+    color: #ffffff;
+}
+
+#courseDisplay {
+    background-color: #ffffff;
+    padding-top: 10px;
+}
+
+table {
+    background-color: white;
+    width: 95%;
+    margin: auto;
     border-collapse: collapse;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-#greeting{
-	color: white;
+th, td {
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    text-align: left;
 }
 
-.infoBar{
-	display: flex;
-	justify-content: space-between;
+th {
+    background-color: #f9fafb;
+    font-weight: 600;
+    color: #086788;
 }
 
-table{
-	background-color: white;
-	width: 95%;
-	margin: auto;
-}
-td{
-	padding: 10px;
-	width: fit-content;
-}
-th{
-	padding: 10px;
+button {
+    font-size: 16px;
+    background-color: #F0C808;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    color: #000000;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-button{
-	margin: 15px;
-	font-size: 16px;
-	background-color: orange;
-	border: none;
-	border-radius: 10px;
-	padding: 10px;
+button:hover {
+    background-color: #e5b800;
+}
+
+/* Account creation screen CSS */
+
+.titleText {
+    text-align: center;
+    color: #086788;
+    font-size: 42px;
+    margin-bottom: 20px;
+}
+
+.innerInfoBox {
+    width: 80%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.signInForms {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 15px 0;
+    color: #333;
+    font-weight: 600;
+}
+
+.signInForms > span {
+    flex: 1;
+    padding-right: 10px;
+    text-align: left;
+}
+
+.signInForms > input,
+.signInForms > select {
+    flex: 2;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    transition: border-color 0.2s ease;
+}
+
+.signInForms > input:focus,
+.signInForms > select:focus {
+    outline: none;
+    border-color: #086788;
+}
+
+.primaryBtn {
+    display: block;
+    width: 80%;
+    max-width: 500px;
+    margin: 20px auto;
+    background-color: #F0C808;
+    color: #000;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.primaryBtn:hover {
+    background-color: #e5b800;
+}
+
+.secondaryBtn {
+    display: block;
+    width: 80%;
+    max-width: 500px;
+    margin: 10px auto;
+    background-color: #086788;
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.secondaryBtn:hover {
+    background-color: #065f70;
+}
+
+.secondaryBtn.small {
+    width: 20%;
+    margin: 20px auto;
 }
 

@@ -198,7 +198,7 @@ def show_courses():
 # ----------------- STUDENT FUNCTIONALITIES ----------------- #
 
 # Show all courses that the student is registered in
-@app.route('/student/<string:username>', methods=['GET'])
+@app.route('/student/<string:username>')
 def show_courses_registered(username):
     student = Student.query.filter_by(username=username).first()
     if student:
@@ -250,7 +250,7 @@ def drop_course(username, course_name):
 # ----------------- TEACHER FUNCTIONALITIES ----------------- #
 
 # Show all courses that a teacher teaches
-@app.route('/teacher/<string:username>', methods=['GET'])
+@app.route('/teacher/<string:username>')
 def show_courses_taught(username):
     teacher = Teacher.query.filter_by(username=username).first()
     if teacher:
@@ -261,7 +261,7 @@ def show_courses_taught(username):
 
 
 # Show all students and their grades in a specific course
-@app.route('/teacher/<string:username>/<string:course_name>', methods=['GET'])
+@app.route('/teacher/<string:username>/<string:course_name>')
 def show_students_in_course(username, course_name):
     teacher = Teacher.query.filter_by(username=username).first()
     if teacher:

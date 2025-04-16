@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.associationproxy import association_proxy
 from flask_admin import Admin
-from flask_admin.base import MenuLink
+from flask_admin.base import MenuLink, expose
 from flask_admin import AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
@@ -155,6 +155,10 @@ class AdminIndex(AdminIndexView):
     def inaccessible_callback(self, name, **kwargs):
         raise Forbidden()
 
+    @expose('/')
+    def index(self):
+        return self.render('adminTemplate.html', name=current_user.legal_name)
+
 admin = Admin(app, name='Course Management', template_mode='bootstrap3', index_view=AdminIndex())
 
 class UserModelView(ModelView):
@@ -174,6 +178,10 @@ class UserModelView(ModelView):
             ]
         }
     }
+
+    def on_model_change(self, form, model, is_created):
+        if is_created:
+            model.password = bcrypt.generate_password_hash(model.password).decode('utf-8')
 
 class CourseModelView(ModelView):
     column_list = ('id', 'course_name', 'teacher_id', 'time', 'max_students')

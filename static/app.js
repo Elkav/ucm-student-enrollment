@@ -38,7 +38,7 @@ function addUser() {
         })
     })
         .then(response => response.json())
-        .then(() => {signIn()}) // do some checks before signing in??
+        .then(() => {signIn()})
         .catch(err => console.error(err));
 }
 
@@ -51,6 +51,11 @@ function signIn() {
         .then(data => {
             username = name;
             document.getElementById("app").innerHTML = data;
+            if (data.includes("STUDENT")) {
+                showMyCourses_student();
+            } else if (data.includes("TEACHER")) {
+                showMyCourses_teacher();
+            }
         })
         .catch(err => console.error(err));
 }

@@ -159,7 +159,7 @@ class UserModelView(ModelView):
     }
 
 class CourseModelView(ModelView):
-    column_list = ('course_name', 'teacher_id', 'time', 'max_students')
+    column_list = ('course_id', 'course_name', 'teacher_id', 'time', 'max_students')
     form_columns = ('course_name', 'teacher_id', 'time', 'max_students')
 
 class RegModelView(ModelView):
@@ -259,6 +259,8 @@ def register_course(username, course_name):
         if course:
             if course in student.courses:
                 return error('Course already registered')
+            if len(course.students) == course.max_students:
+                return error('Course is full')
             else:
                 reg = Registration(student=student, course=course)
                 db.session.add(reg)

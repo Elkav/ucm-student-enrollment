@@ -4,6 +4,10 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from flask_admin import Admin
 from flask_admin.base import MenuLink
 from flask_admin.contrib.sqla import ModelView
+from flask_wtf.csrf import CSRFProtect
+from flask_bcrypt import Bcrypt
+from flask_login import login_user, current_user, logout_user, login_required
+import os
 import secrets
 
 # Deleted migrate temporarily
@@ -12,6 +16,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.sqlite3'
 db = SQLAlchemy(app)
 # app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 app.config['SECRET_KEY'] = secrets.token_hex(16)  # Generates a 32-character random key
+
+csrf = CSRFProtect(app)
+bcrypt = Bcrypt(app)
+
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info'
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 admin = Admin(app, name='Course Management', template_mode='bootstrap3')
 
@@ -128,8 +142,9 @@ class MyModelView(ModelView):
 
 
 # Admin views to create, read, update, and delete
-admin.add_view(ModelView(Student, db.session))
-admin.add_view(ModelView(Teacher, db.session))
+# admin.add_view(ModelView(Student, db.session))
+# admin.add_view(ModelView(Teacher, db.session))
+admin.add_view(ModelView(User, db.session))
 admin.add_view(MyModelView(Course, db.session))
 admin.add_link(MenuLink(name='Logout', category='', url='/'))
 
@@ -152,9 +167,11 @@ def create():
         legal_name = data['legal_name']
         role = data['role']
 
+        # hashed_password = bcrypt.generate_password_hash(raw_password).decode('utf-8') #may have to change utf-8 to the other thing
+
         if role == 'student':
             if Student.query.filter_by(username=username).first():
-                return 400
+                return error("Student already exists", 400)
             student = Student(username=username, password=password, legal_name=legal_name)
             db.session.add(student)
             db.session.commit()

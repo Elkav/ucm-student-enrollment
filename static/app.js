@@ -81,7 +81,6 @@ function showAllCourses_student() {
         fetch(`${url}/courses`)
             .then(response => response.json())
             .then(data => {
-                console.log(data);
                 const tableBody = document.getElementById("courseTableBody");
                 tableBody.innerHTML = "";
                 Object.entries(data).forEach((element) => {
@@ -95,7 +94,6 @@ function showAllCourses_student() {
                                 <td>add/drop</td>`;
                     tableBody.appendChild(row);
                 });
-                console.log(tableBody);
             })
             .catch(err => console.error(err));
   } else {

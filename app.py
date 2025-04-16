@@ -203,7 +203,7 @@ def show_courses_registered(username):
     student = Student.query.filter_by(username=username).first()
     if student:
         courses = student.courses
-        return jsonify([course.to_dict() for course in courses]), 200
+        return jsonify([{**course.to_dict(), "grade": student.get_grade(course.course_name)} for course in courses]), 200
     else:
         return error('Student not found')
 

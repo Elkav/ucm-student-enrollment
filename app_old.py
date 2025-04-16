@@ -5,7 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin
 from flask_admin.base import MenuLink
 from flask_admin.contrib.sqla import ModelView
-from flask_migrate import Migrate
 import secrets
 
 app = Flask(__name__)
@@ -13,7 +12,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///example.sqlite4"
 db = SQLAlchemy(app)
 app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
 app.config['SECRET_KEY'] = secrets.token_hex(16)  # Generates a 32-character random key
-migrate = Migrate(app, db)
 
 admin = Admin(app, name='Class Management', template_mode='bootstrap3')
 
@@ -73,6 +71,13 @@ class AdminUser(db.Model):
             "username": self.username
         }
 
+class StudentView(ModelView):
+    column_list = ('username', 'password', 'legal_name')
+    can_create = False
+
+class TeacherView(ModelView):
+    column_list = ('username', 'password', 'legal_name')
+    can_create = False
 
 class MyModelView(ModelView):
     column_list = ('course_name', 'teacher_id', 'student_id', 'time', 'students_enrolled', 'grade')
@@ -80,8 +85,8 @@ class MyModelView(ModelView):
 
 
 # Admin views to create, read, update, and delete
-admin.add_view(ModelView(Student, db.session))
-admin.add_view(ModelView(Teacher, db.session))
+admin.add_view(StudentView(Student, db.session))
+admin.add_view(TeacherView(Teacher, db.session))
 admin.add_view(MyModelView(Course, db.session))
 admin.add_link(MenuLink(name='Logout', category='', url='/'))
 
@@ -142,7 +147,6 @@ def show_user_page(username, password):
 
     adminUser = AdminUser.query.filter_by(username=username).first()
     if adminUser and adminUser.password == password:
-        # return render_template("adminTemplate.html", name=adminUser.username)
         return redirect('/admin')
 
     return "404"
@@ -151,6 +155,8 @@ def convert_to_dict(courses):
     course_dict = {}
     for course in courses:
         total_students = Course.query.filter_by(id=course.id).count()
+        if total_students == 1 and Course.query.filter_by(id=course.id).first().student_id == 0:
+            total_students = 0
         percentage = str(total_students) + '/' + str(course.students_enrolled)
         course_dict[course.course_name] = [course.time, percentage]
     return course_dict
@@ -172,6 +178,8 @@ def show_all_courses_published(username):
     course_dict = {}
     for course in courses:
         total_students = Course.query.filter_by(id=course.id).count()
+        if total_students == 1 and Course.query.filter_by(id=course.id).first().student_id == 0:
+            total_students = 0
         percentage = str(total_students) + '/' + str(course.students_enrolled)
         registered = 'NO'
         if Course.query.filter_by(id=course.id, student_id=student_id).first():
@@ -205,7 +213,7 @@ def register_course(username, course_name):
         return jsonify({"error": "Student not found"}), 404
 
 
-@app.route('/teacher/<string:username>/<string:course_name>', methods=['DELETE'])
+@app.route('/student/<string:username>/<string:course_name>', methods=['DELETE'])
 def drop_course(username, course_name):
     student = Student.query.filter_by(username=username).first()
     if student:
@@ -242,7 +250,7 @@ def show_all_students_in_one_course(username, course_name):
         if len(particular_course) > 0:
             student_dict = {}
             for one_stance in particular_course:
-                if one_stance.student_id is not None:
+                if one_stance.student_id != 0:
                     student_name = Student.query.filter_by(id=one_stance.student_id).first().legal_name
                     student_dict[student_name] = one_stance.grade
             return jsonify(student_dict), 200

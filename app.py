@@ -28,7 +28,7 @@ class Registration(db.Model):  # handles relationships between students, courses
     course = db.relationship('Course', back_populates='registration')
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), primary_key=True)
-    grade = db.Column(db.Numeric(5, 2), nullable=True, default=0)
+    grade = db.Column(db.Numeric(5, 2), nullable=True, default=100)
 
 
 class Course(db.Model):
@@ -36,17 +36,31 @@ class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_name = db.Column(db.String(), unique=True, nullable=False)
     time = db.Column(db.String())
-    # for the 1-to-many relationship btwn course and teacher
-    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=True)
     registration = db.relationship('Registration', back_populates='course')
     students = association_proxy('registration', 'student')
     max_students = db.Column(db.Integer, nullable=False)
 
+    def __init__(self, course_name, teacher_id, time, max_students):
+        self.course_name = course_name
+        self.time = time
+        self.max_students = max_students
+        teacher = Teacher.query.get(teacher_id)
+        if teacher:
+            self.teacher = teacher
+        else:
+            self.teacher = None
+
     def to_dict(self):
+        teachername = "None"
+        if self.teacher is not None:
+            teachername = self.teacher.legal_name
+
         return {
             'course_name': self.course_name,
             'time': self.time,
             'teacher_id': self.teacher_id,
+            'teacher_name': teachername,
             'num_students': len(self.students),
             'max_students': self.max_students
         }
@@ -121,22 +135,31 @@ class Admin(User):
             'legal_name': self.legal_name
         }
 
+class UserModelView(ModelView):
+    column_list = ('id', 'username', 'password', 'legal_name', 'role')
+    form_columns = ('username', 'password', 'legal_name', 'role')
 
-class MyModelView(ModelView):
+class CourseModelView(ModelView):
     column_list = ('course_name', 'teacher_id', 'time', 'max_students')
     form_columns = ('course_name', 'teacher_id', 'time', 'max_students')
 
+class RegModelView(ModelView):
+    column_list = ('student_id', 'course_id', 'grade')
 
 # Admin views to create, read, update, and delete
-admin.add_view(ModelView(Student, db.session))
-admin.add_view(ModelView(Teacher, db.session))
-admin.add_view(MyModelView(Course, db.session))
+admin.add_view(UserModelView(User, db.session))
+admin.add_view(CourseModelView(Course, db.session))
+admin.add_view(RegModelView(Registration, db.session))
 admin.add_link(MenuLink(name='Logout', category='', url='/'))
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/login')
+def login_screen():
+    return render_template('login.html')
 
 
 # Create new user (student, teacher, or admin)

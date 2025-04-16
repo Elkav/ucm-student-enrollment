@@ -1,42 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Create Account Page</title>
-    <script src="../static/app.js"></script>
-    <link rel="stylesheet" href="../static/style.css">
-</head>
-<body>
-<!--
-<div>
-    <input type="text" id="username" placeholder="Enter Username">
-    <input type="text" id="password" placeholder="Enter Password">
-    <input type="text" id="legal_name" placeholder="Enter Legal Name">
-    <input type="text" id="statue" placeholder="Enter Statue (e.g. student; teacher; admin)">
-    <button onclick="create()">Create</button>
-</div>
+<div class="infoBox">
+    <h1 class="titleText">Create Account</h1>
+    <div class="innerInfoBox">
+        <p class="signInForms"><span>Username</span> <input type="text" id="username" placeholder="Enter Username"></p>
+        <p class="signInForms"><span>Password</span> <input type="password" id="password" placeholder="Enter Password"></p>
+        <p class="signInForms"><span>Legal Name</span> <input type="text" id="legal_name" placeholder="Enter Legal Name"></p>
+        <p class="signInForms"><span>Account Type</span>
+            <select id="role">
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+                <option value="admin">Administrator</option>
+            </select>
+        </p>
+        <button id="signInButton" onclick="addUser()">Create</button>
+    </div>
     <div>
         <button onclick="signOut()">Sign Out</button>
     </div>
--->
+</div>
 
-<div class="infoBox">
-		<h1 class="titleText">Create Account</h1>
-		<div class="innerInfoBox">
-			<p class="signInForms"><span>Username</span> <input type="text" id="username" placeholder="Enter Username"></p>
-			<p class="signInForms"><span>Password</span> <input type="password" id="password" placeholder="Enter Password"></p>
-			<p class="signInForms"><span>Legal Name</span> <input type="text" id="legal_name" placeholder="Enter Legal Name"></p>
-            <p class="signInForms"><span>Account Type</span>
-                <select id="role">
-                    <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="admin">Administrator</option>
-                </select>
-            </p>
-			<button id="signInButton" onclick="addUser()">Create</button>
-		</div>
-		<div>
-			<button onclick="signOut()">Sign Out</button>
-		</div>
-    </div>
-</body>
-</html>

@@ -3,21 +3,24 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.associationproxy import association_proxy
 from flask_admin import Admin
 from flask_admin.base import MenuLink
+from flask_admin import AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
+from werkzeug.exceptions import Forbidden
 from wtforms.fields import SelectField
 import secrets
 
 # Deleted migrate temporarily
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.sqlite3'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+app.config['SECRET_KEY'] = secrets.token_hex(16)  #generates a 32-character random key
 db = SQLAlchemy(app)
-
-app.config['SECRET_KEY'] = secrets.token_hex(16)  # Generates a 32-character random key
-
 bcrypt = Bcrypt(app)
 
-admin = Admin(app, name='Course Management', template_mode='bootstrap3')
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login_screen'
 
 def error(message, status=404):
     return jsonify({'error': message}), status
@@ -71,7 +74,7 @@ class Course(db.Model):
         }
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(), unique=True, nullable=False)
     password = db.Column(db.String(), nullable=False)
@@ -86,6 +89,10 @@ class User(db.Model):
         return {
             'legal_name': self.legal_name
         }
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 
 class Student(User):
@@ -129,7 +136,7 @@ class Teacher(User):
         }
 
 
-class Admin(User):
+class Administrator(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     __mapper_args__ = {
         'polymorphic_identity': 'admin',
@@ -139,6 +146,16 @@ class Admin(User):
         return {
             'legal_name': self.legal_name
         }
+
+
+class AdminIndex(AdminIndexView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.role == 'admin'
+
+    def inaccessible_callback(self, name, **kwargs):
+        raise Forbidden()
+
+admin = Admin(app, name='Course Management', template_mode='bootstrap3', index_view=AdminIndex())
 
 class UserModelView(ModelView):
     column_list = ('id', 'username', 'password', 'legal_name', 'role')
@@ -151,8 +168,8 @@ class UserModelView(ModelView):
     form_args = {
         'role': {
             'choices': [
-                ('student', 'Student'), 
-                ('teacher', 'Teacher'), 
+                ('student', 'Student'),
+                ('teacher', 'Teacher'),
                 ('admin', 'Admin')
             ]
         }
@@ -169,17 +186,12 @@ class RegModelView(ModelView):
 admin.add_view(UserModelView(User, db.session))
 admin.add_view(CourseModelView(Course, db.session))
 admin.add_view(RegModelView(Registration, db.session))
-admin.add_link(MenuLink(name='Logout', category='', url='/'))
+admin.add_link(MenuLink(name='Logout', category='', url='/logout'))
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
-@app.route('/login')
-def login_screen():
-    return render_template('login.html')
-
 
 # Create new user (student, teacher, or admin)
 @app.route('/create', methods=['GET', 'POST'])
@@ -209,9 +221,9 @@ def create():
             db.session.commit()
             return jsonify(teacher.to_dict())
         elif role == 'admin':
-            if Admin.query.filter_by(username=username).first():
+            if Administrator.query.filter_by(username=username).first():
                 return error("Admin already exists", 400)
-            admin = Admin(username=username, password=password, legal_name=legal_name)
+            admin = Administrator(username=username, password=password, legal_name=legal_name)
             db.session.add(admin)
             db.session.commit()
             return jsonify(admin.to_dict())
@@ -219,19 +231,33 @@ def create():
             return error('Role not found')
 
 
-# User page routing
-@app.route('/<string:username>/<string:password>')
-def show_user_page(username, password):
-    user = User.query.filter_by(username=username).first()
-    if user and bcrypt.check_password_hash(user.password.encode('utf-8'), password):
-        if user.role == 'admin':
-            return redirect('/admin')
-        else:
-            return render_template(f'{user.role}Template.html', name=user.legal_name)
-    return error('Invalid username or password', 404)
+# Login (User page routing)
+@app.route('/login', methods=['GET', 'POST'])
+def login_screen():
+    if request.method == 'GET':
+        return render_template('login.html')
 
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user = User.query.filter_by(username=username).first()
+
+        if user and bcrypt.check_password_hash(user.password.encode('utf-8'), password):
+            login_user(user)
+            if user.role == 'admin':
+                return redirect('/admin')
+            return render_template(f'{user.role}Template.html', name=user.legal_name)
+
+        return error('Invalid username or password', 404)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return render_template('index.html')
 
 @app.route('/courses')
+@login_required
 def show_courses():
     courses = Course.query.all()
     return jsonify([course.to_dict() for course in courses]), 200
@@ -239,10 +265,10 @@ def show_courses():
 
 # ----------------- STUDENT FUNCTIONALITIES ----------------- #
 
-# Show all courses that the student is registered in
-@app.route('/student/<string:username>')
-def show_courses_registered(username):
-    student = Student.query.filter_by(username=username).first()
+@app.route('/student')
+@login_required
+def show_courses_registered():
+    student = Student.query.get(current_user.id)
     if student:
         courses = student.courses
         return jsonify([{**course.to_dict(), "grade": student.get_grade(course.course_name)} for course in courses]), 200
@@ -251,9 +277,10 @@ def show_courses_registered(username):
 
 
 # Add course
-@app.route('/student/<string:username>/<string:course_name>', methods=['POST'])
-def register_course(username, course_name):
-    student = Student.query.filter_by(username=username).first()
+@app.route('/student/<string:course_name>', methods=['POST'])
+@login_required
+def register_course(course_name):
+    student = Student.query.get(current_user.id)
     if student:
         course = Course.query.filter_by(course_name=course_name).first()
         if course:
@@ -273,9 +300,10 @@ def register_course(username, course_name):
 
 
 # Drop course
-@app.route('/student/<string:username>/<string:course_name>', methods=['DELETE'])
-def drop_course(username, course_name):
-    student = Student.query.filter_by(username=username).first()
+@app.route('/student/<string:course_name>', methods=['DELETE'])
+@login_required
+def drop_course(course_name):
+    student = Student.query.get(current_user.id)
     if student:
         course = Course.query.filter_by(course_name=course_name).first()
         if course:
@@ -295,9 +323,10 @@ def drop_course(username, course_name):
 # ----------------- TEACHER FUNCTIONALITIES ----------------- #
 
 # Show all courses that a teacher teaches
-@app.route('/teacher/<string:username>')
-def show_courses_taught(username):
-    teacher = Teacher.query.filter_by(username=username).first()
+@app.route('/teacher')
+@login_required
+def show_courses_taught():
+    teacher = Teacher.query.get(current_user.id)
     if teacher:
         courses = teacher.courses
         return jsonify([course.to_dict() for course in courses]), 200
@@ -306,9 +335,10 @@ def show_courses_taught(username):
 
 
 # Show all students and their grades in a specific course
-@app.route('/teacher/<string:username>/<string:course_name>')
-def show_students_in_course(username, course_name):
-    teacher = Teacher.query.filter_by(username=username).first()
+@app.route('/teacher/<string:course_name>')
+@login_required
+def show_students_in_course(course_name):
+    teacher = Teacher.query.get(current_user.id)
     if teacher:
         course = Course.query.filter_by(course_name=course_name, teacher_id=teacher.id).first()
         if course:
@@ -320,9 +350,10 @@ def show_students_in_course(username, course_name):
 
 
 # Change grade of student
-@app.route('/teacher/<string:username>/<string:course_name>/<string:student_name>/<int:grade>', methods=['PUT'])
-def change_student_grade(username, course_name, student_name, grade):
-    teacher = Teacher.query.filter_by(username=username).first()
+@app.route('/teacher/<string:course_name>/<string:student_name>/<int:grade>', methods=['PUT'])
+@login_required
+def change_student_grade(course_name, student_name, grade):
+    teacher = Teacher.query.get(current_user.id)
     if teacher:
         student = Student.query.filter_by(legal_name=student_name).first()
         if student:

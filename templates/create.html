@@ -1,17 +1,19 @@
 <div class="infoBox">
     <h1 class="titleText">Create Account</h1>
     <div class="innerInfoBox">
-        <p class="signInForms"><span>Username</span> <input type="text" id="username" placeholder="Enter Username"></p>
-        <p class="signInForms"><span>Password</span> <input type="password" id="password" placeholder="Enter Password"></p>
-        <p class="signInForms"><span>Legal Name</span> <input type="text" id="legal_name" placeholder="Enter Legal Name"></p>
-        <p class="signInForms"><span>Account Type</span>
-            <select id="role">
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Administrator</option>
-            </select>
-        </p>
-        <button class="primaryBtn" id="signInButton" onclick="addUser()">Create Account</button>
+        <form id="loginForm">
+            <p class="signInForms"><span>Username</span> <input type="text" id="username" placeholder="Enter Username"></p>
+            <p class="signInForms"><span>Password</span> <input type="password" id="password" placeholder="Enter Password"></p>
+            <p class="signInForms"><span>Legal Name</span> <input type="text" id="legal_name" placeholder="Enter Legal Name"></p>
+            <p class="signInForms"><span>Account Type</span>
+                <select id="role">
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="admin">Administrator</option>
+                </select>
+            </p>
+            <button class="primaryBtn" id="signInButton" onclick="event.preventDefault(); addUser()">Create Account</button>
+        </form>
     </div>
     <div>
         <button class="secondaryBtn small" onclick="signOut()">Back</button>

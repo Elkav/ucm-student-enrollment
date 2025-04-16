@@ -1,14 +1,14 @@
 const url = "http://127.0.0.1:5000";
-let username = "";
 
 function showLogin() {
-        fetch(`${url}/login`)
+    fetch(`${url}/login`)
         .then(response => response.text())
         .then(data => {
             document.getElementById("app").innerHTML = data;
         })
         .catch(err => console.error(err));
 }
+
 
 //load create.html template (for creating a new account)
 function createAccount() {
@@ -54,37 +54,47 @@ function addUser() {
 function signIn() {
     let name = document.getElementById("username").value;
     let pwd = document.getElementById("password").value;
-    if(name === "" || pwd === "")
+    if(name === "" || pwd === "") {
         alert("Invalid username or password");
-    else {
-        fetch(`${url}/${name}/${pwd}`)
-            .then(response => {
-                if (!response.ok) throw new Error("Invalid username or password");
-                return response.text();
-            })
-            .then(data => {
-                username = name;
-                document.getElementById("app").innerHTML = data;
-                if (data.includes("STUDENT TEMPLATE")) {
-                    showMyCourses_student();
-                } else if (data.includes("TEACHER TEMPLATE")) {
-                    showMyCourses_teacher();
-                }
-            })
-            .catch(err => {
-                alert(err.message);
-            });
+        return;
     }
+
+    const form = new URLSearchParams();
+    form.append("username", name);
+    form.append("password", pwd);
+
+    fetch(`${url}/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: form
+    })
+        .then(response => {
+            if (!response.ok) throw new Error("Invalid username or password");
+            return response.text();
+        })
+        .then(data => {
+            document.getElementById("app").innerHTML = data;
+            if (data.includes("STUDENT TEMPLATE")) {
+                showMyCourses_student();
+            } else if (data.includes("TEACHER TEMPLATE")) {
+                showMyCourses_teacher();
+            }
+        })
+        .catch(err => {
+            alert(err.message);
+        });
 }
 
-
 function signOut() {
-    showLogin();
-    username = '';
+    fetch(`${url}/logout`)
+        .then(() => {
+            showLogin();
+        })
+        .catch(err => console.error(err));
 }
 
 function showMyCourses_student() {
-    fetch(`${url}/student/${username}`)
+    fetch(`${url}/student`)
         .then(response => response.json())
         .then(data => {
             document.getElementById("myCoursesTab").classList.add("active");
@@ -119,7 +129,7 @@ function showMyCourses_student() {
 
 function showAllCourses_student() {
     //First fetch courses the student is in (to know which "Add"s to grey out)
-    fetch(`${url}/student/${username}`)  // get the list of enrolled courses
+    fetch(`${url}/student`)  // get the list of enrolled courses
         .then(response => response.json())
         .then(myCourses => {
             let myCourseNames = myCourses.map(course => course['course_name']);
@@ -160,7 +170,7 @@ function showAllCourses_student() {
 }
 
 function showMyCourses_teacher() {
-    fetch(`${url}/teacher/${username}`)
+    fetch(`${url}/teacher`)
         .then(response => response.json())
         .then(data => {
             const backButton = document.getElementById("back");
@@ -180,7 +190,7 @@ function showMyCourses_teacher() {
                 let row = document.createElement("tr");
                 row.innerHTML = `
                             <td><button onclick='showMyStudents_teacher("${course["course_name"]}")'>${course["course_name"]}</button></td>
-                            <td>${username}</td>
+                            <td>${course["teacher_name"]}</td>
                             <td>${course["time"]}</td>
                             <td>${course["num_students"]}/${course["max_students"]}</td>`
                 tableBody.appendChild(row);
@@ -190,7 +200,7 @@ function showMyCourses_teacher() {
 }
 
 function showMyStudents_teacher(courseName){
-	fetch(`${url}/teacher/${username}/${courseName}`)
+	fetch(`${url}/teacher/${courseName}`)
         .then(response => response.json())
         .then(data => {
             const backButton = document.getElementById("back");
@@ -228,13 +238,12 @@ function showMyStudents_teacher(courseName){
 function submitGrades(studentName, studentGrade, courseName){
 	console.log(`${studentName}'s grade is now ${studentGrade}`);
 
-	fetch(`${url}/teacher/${username}/${courseName}/${studentName}/${grade}`, {
+	fetch(`${url}/teacher/${courseName}/${studentName}/${grade}`, {
 			method: 'PUT',
 		})
         .then(response => response.json())
         .then(data => console.log(data))
         .catch(err => {
-            console.log(username)
             console.error(err)
         });
 
@@ -243,27 +252,25 @@ function submitGrades(studentName, studentGrade, courseName){
 }
 
 function addCourse(courseName){
-	fetch(`${url}/student/${username}/${courseName}`, {
+	fetch(`${url}/student/${courseName}`, {
 			method: 'POST',
 		})
         .then(response => response.json())
         .then(data => console.log(data))
         .then(() => {showAllCourses_student()})
         .catch(err => {
-            console.log(username)
             console.error(err)
         });
 }
 
 function dropCourse(courseName){
-	fetch(`${url}/student/${username}/${courseName}`, {
+	fetch(`${url}/student/${courseName}`, {
 			method: 'DELETE',
 		})
         .then(response => response.json())
         .then(data => console.log(data))
         .then(() => {showMyCourses_student()})
         .catch(err => {
-            console.log(username)
             console.error(err)
         });
 }

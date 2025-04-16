@@ -1,6 +1,8 @@
-<div>
-    <h1 id="greeting">Welcome {{ name }}!</h1>
-    <div> My Courses </div>
+<div class="infoBox">
+    <div class="infoBar">
+		<h1 id="greeting">Welcome {{ name }}!</h1>
+		<button style="display: block;" onclick="signOut()">Sign Out</button>
+    </div>
     <div id = "demo"> 
         <table id="courseTable">
             <thead id="courseTableHead">
@@ -19,6 +21,5 @@
     <!-- <button onclick="showMyCourses_teacher()">My Courses</button> -->
     <div>
 		<button onclick="showMyCourses_teacher()">View All Courses</button>
-        <button onclick="signOut()">Sign Out</button>
     </div>
 </div>

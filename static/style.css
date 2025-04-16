@@ -50,3 +50,34 @@ table, tr, td, th {
     border-collapse: collapse;
 }
 
+#greeting{
+	color: white;
+}
+
+.infoBar{
+	display: flex;
+	justify-content: space-between;
+}
+
+table{
+	background-color: white;
+	width: 95%;
+	margin: auto;
+}
+td{
+	padding: 10px;
+	width: fit-content;
+}
+th{
+	padding: 10px;
+}
+
+button{
+	margin: 15px;
+	font-size: 16px;
+	background-color: orange;
+	border: none;
+	border-radius: 10px;
+	padding: 10px;
+}
+

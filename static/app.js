@@ -67,38 +67,42 @@ function signOut() {
 function showMyCourses_student() {
     fetch(`${url}/student/${username}`)
         .then(response => response.json())
-        .then(data => console.log(data))
-        .catch(err => {
-            console.log(username)
-            console.error(err)
-        });
+        .then(data => {
+            const tableBody = document.getElementById("courseTableBody");
+            tableBody.innerHTML = "";
+            Object.entries(data).forEach((element) => {
+                course = element[1];
+                let row = document.createElement("tr");
+                row.innerHTML = `
+                            <td>${course["course_name"]}</td>
+                            <td>${course["teacher_id"]}</td>
+                            <td>${course["time"]}</td>
+                            <td>${course["num_students"]}/${course["max_students"]}</td>`
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(err => console.error(err));
 }
 
 function showAllCourses_student() {
-    var x = document.getElementById("courseDisplay");
-    if (x.style.display === "none") {
-        x.style.display = "block";
-        fetch(`${url}/courses`)
-            .then(response => response.json())
-            .then(data => {
-                const tableBody = document.getElementById("courseTableBody");
-                tableBody.innerHTML = "";
-                Object.entries(data).forEach((element) => {
-                    course = element[1];
-                    let row = document.createElement("tr");
-                    row.innerHTML = `
-                                <td>${course["course_name"]}</td>
-                                <td>${course["teacher_id"]}</td>
-                                <td>${course["time"]}</td>
-                                <td>${course["num_students"]}/${course["max_students"]}</td>
-                                <td><button onclick='addDrop("${course["course_name"]}")'>Add/Drop</button></td>`;
-                    tableBody.appendChild(row);
-                });
-            })
-            .catch(err => console.error(err));
-  } else {
-    x.style.display = "none";
-  }
+    fetch(`${url}/courses`)
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("courseTableBody");
+            tableBody.innerHTML = "";
+            Object.entries(data).forEach((element) => {
+                course = element[1];
+                let row = document.createElement("tr");
+                row.innerHTML = `
+                            <td>${course["course_name"]}</td>
+                            <td>${course["teacher_id"]}</td>
+                            <td>${course["time"]}</td>
+                            <td>${course["num_students"]}/${course["max_students"]}</td>
+                            <td><button onclick='addDrop("${course["course_name"]}")'>Add/Drop</button></td>`;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(err => console.error(err));
 }
 
 // let something = showMyCourses_teacher();

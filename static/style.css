@@ -42,3 +42,11 @@ body{
 button{
 	background-color: white;
 }
+
+table, tr, td, th {
+    width: 60%;
+    border: 1px solid;
+    text-align: left;
+    border-collapse: collapse;
+}
+

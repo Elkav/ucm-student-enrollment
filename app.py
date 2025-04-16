@@ -218,7 +218,8 @@ def register_course(username, course_name):
             if course in student.courses:
                 return error('Course already registered')
             else:
-                student.courses.append(course)
+                reg = Registration(student=student, course=course)
+                db.session.add(reg)
                 db.session.commit()
             return success('Course registered successfully')
         else:

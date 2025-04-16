@@ -3,6 +3,11 @@
 <head>
     <title>Teacher Page</title>
     <script src="../static/app.js"></script>
+    <script>
+		window.addEventListener("load", (event) => {
+			showMyCourses_teacher();
+		});
+	</script>
 </head>
 <body>
     <h1 id="greeting">Welcome {{ name }}!</h1>
@@ -24,6 +29,7 @@
 
     <!-- <button onclick="showMyCourses_teacher()">My Courses</button> -->
     <div>
+		<button onclick="showMyCourses_teacher()">View All Courses</button>
         <button onclick="signOut()">Sign Out</button>
     </div>
 </body>

@@ -113,16 +113,26 @@ function showAllCourses_student() {
 // document.getElementById("demo").innerHTML = something;
 
 function showMyCourses_teacher() {
-    var something = document.getElementById("demo");
-    if(x.style.display === "none"){
-        fetch(`${url}/teacher/${username}`)
+	//Get table headers	
+	
+    fetch(`${url}/teacher/${username}`)
         .then(response => response.json())
         .then(data => {
-            console.log(username)
-            console.table(data);
+            const tableBody = document.getElementById("courseTableBody");
+            tableBody.innerHTML = "";
+            Object.entries(data).forEach((element) => {
+                course = element[1];
+                let row = document.createElement("tr");
+                row.id = course["course_name"]
+                row.innerHTML = `
+                            <td><button onclick='teacherViewCourse("${course["course_name"]}")'>${course["course_name"]}</button></td>
+                            <td>${username}</td>
+                            <td>${course["time"]}</td>
+                            <td>${course["num_students"]}/${course["max_students"]}</td>`
+                tableBody.appendChild(row);
+            });
         })
         .catch(err => console.error(err));
-    }
 }
 
 function addCourse(courseName){
@@ -155,4 +165,55 @@ function dropCourse(courseName){
         });
         
      document.getElementById(courseName).remove();
+}
+
+function teacherViewCourse(courseName){
+	fetch(`${url}/teacher/${username}/${courseName}`)
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("courseTableBody");
+            tableBody.innerHTML = "";
+            Object.entries(data).forEach((element) => {
+                let studentInfo = element[1]; //Contain an object with "student name: grade" but the student name is always different
+                let studentName = Object.keys(studentInfo)[0];
+                let studentGrade = studentInfo[studentName]
+                //
+                let row = document.createElement("tr");
+                row.innerHTML = `
+                            <td>${studentName}</td>
+                            
+                            <td id="${studentName}" contenteditable="true">${studentGrade}</td>`
+                tableBody.appendChild(row);
+                
+                let gradeInput = document.getElementById(studentName);
+                gradeInput.addEventListener("keypress", function(event) {
+					
+					if (event.key === "Enter"){
+						event.preventDefault(); //Prevent the default behavior (aka adding a new line)
+						grade = Number(gradeInput.innerHTML);
+						
+						submitGrades(studentName, grade, courseName);
+					}
+				});
+                
+            });
+        })
+        .catch(err => console.error(err));
+}
+
+function submitGrades(studentName, studentGrade, courseName){
+	console.log(`${studentName}'s grade is now ${studentGrade}`);
+	
+	fetch(`${url}/teacher/${username}/${courseName}/${studentName}/${grade}`, {
+			method: 'PUT',
+		})
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(err => {
+            console.log(username)
+            console.error(err)
+        });
+        
+    alert("Grade has been successfully updated!")
+	
 }

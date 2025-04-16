@@ -75,7 +75,7 @@ function showMyCourses_student() {
 }
 
 function showAllCourses_student() {
-    var x = document.getElementById("myDIV");
+    var x = document.getElementById("courseDisplay");
     if (x.style.display === "none") {
         x.style.display = "block";
         fetch(`${url}/courses`)

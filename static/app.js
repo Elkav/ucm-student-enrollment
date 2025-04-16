@@ -92,7 +92,7 @@ function showAllCourses_student() {
                                 <td>${course["teacher_id"]}</td>
                                 <td>${course["time"]}</td>
                                 <td>${course["num_students"]}/${course["max_students"]}</td>
-                                <td>add/drop</td>`;
+                                <td><button onclick='addDrop("${course["course_name"]}")'>Add/Drop</button></td>`;
                     tableBody.appendChild(row);
                 });
                 console.log(tableBody);
@@ -116,4 +116,18 @@ function showMyCourses_teacher() {
     } else {
         x.style.display = "none";
     }
+}
+
+function addDrop(courseName){
+	console.log(courseName);
+	console.log(username);
+	fetch(`${url}/student/${username}/${courseName}`, {
+			method: 'POST',
+		})
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(err => {
+            console.log(username)
+            console.error(err)
+        });
 }

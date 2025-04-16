@@ -73,11 +73,13 @@ function showMyCourses_student() {
             Object.entries(data).forEach((element) => {
                 course = element[1];
                 let row = document.createElement("tr");
+                row.id = course["course_name"]
                 row.innerHTML = `
                             <td>${course["course_name"]}</td>
                             <td>${course["teacher_id"]}</td>
                             <td>${course["time"]}</td>
-                            <td>${course["num_students"]}/${course["max_students"]}</td>`
+                            <td>${course["num_students"]}/${course["max_students"]}</td>
+                            <td><button onclick='dropCourse("${course["course_name"]}")'>Drop</button></td>`
                 tableBody.appendChild(row);
             });
         })
@@ -93,12 +95,13 @@ function showAllCourses_student() {
             Object.entries(data).forEach((element) => {
                 course = element[1];
                 let row = document.createElement("tr");
+                row.id = course["course_name"]
                 row.innerHTML = `
                             <td>${course["course_name"]}</td>
                             <td>${course["teacher_id"]}</td>
                             <td>${course["time"]}</td>
                             <td>${course["num_students"]}/${course["max_students"]}</td>
-                            <td><button onclick='addDrop("${course["course_name"]}")'>Add/Drop</button></td>`;
+                            <td><button onclick='addCourse("${course["course_name"]}")'>Add</button></td>`;
                 tableBody.appendChild(row);
             });
         })
@@ -122,7 +125,7 @@ function showMyCourses_teacher() {
     }
 }
 
-function addDrop(courseName){
+function addCourse(courseName){
 	console.log(courseName);
 	console.log(username);
 	fetch(`${url}/student/${username}/${courseName}`, {
@@ -134,4 +137,22 @@ function addDrop(courseName){
             console.log(username)
             console.error(err)
         });
+        
+}
+
+function dropCourse(courseName){
+	//Need to have this update the screen when clicking on button
+	console.log(courseName);
+	console.log(username);
+	fetch(`${url}/student/${username}/${courseName}`, {
+			method: 'DELETE',
+		})
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(err => {
+            console.log(username)
+            console.error(err)
+        });
+        
+     document.getElementById(courseName).remove();
 }

@@ -50,21 +50,22 @@ class Course(db.Model):
         self.time = time
         self.max_students = max_students
         teacher = Teacher.query.get(teacher_id)
+        print("Fetched teacher:", teacher)
         if teacher:
             self.teacher = teacher
         else:
             self.teacher = None
 
     def to_dict(self):
-        teachername = "None"
+        teacher_name = "None"
         if self.teacher is not None:
-            teachername = self.teacher.legal_name
+            teacher_name = self.teacher.legal_name
 
         return {
             'course_name': self.course_name,
             'time': self.time,
             'teacher_id': self.teacher_id,
-            'teacher_name': teachername,
+            'teacher_name': teacher_name,
             'num_students': len(self.students),
             'max_students': self.max_students
         }
@@ -80,11 +81,6 @@ class User(db.Model):
         'polymorphic_identity': 'user',
         'polymorphic_on': role
     }
-
-    # def __init__(self, username, legal_name, password):
-    #     self.username = username
-    #     self.legal_name = legal_name
-    #     self.password = bcrypt.generate_password_hash(password)
 
     def to_dict(self):
         return {
@@ -161,11 +157,6 @@ class UserModelView(ModelView):
             ]
         }
     }
-    def on_model_change(self, form, model, is_created):
-        if 'password' in form:
-            raw_password = form.password.data
-            model.password = bcrypt.generate_password_hash(raw_password).decode('utf-8')
-    
 
 class CourseModelView(ModelView):
     column_list = ('course_name', 'teacher_id', 'time', 'max_students')

@@ -50,9 +50,7 @@ function signIn() {
         .then(response => response.text())
         .then(data => {
             username = name;
-            document.open();
-            document.write(data); //again, NOT IDEAL
-            document.close();
+            document.getElementById("app").innerHTML = data;
         })
         .catch(err => console.error(err));
 }

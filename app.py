@@ -4,14 +4,18 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from flask_admin import Admin
 from flask_admin.base import MenuLink
 from flask_admin.contrib.sqla import ModelView
+from flask_bcrypt import Bcrypt, generate_password_hash, check_password_hash
+import os
 import secrets
 
 # Deleted migrate temporarily
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.sqlite3'
 db = SQLAlchemy(app)
-# app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
+
 app.config['SECRET_KEY'] = secrets.token_hex(16)  # Generates a 32-character random key
+
+bcrypt = Bcrypt(app)
 
 admin = Admin(app, name='Course Management', template_mode='bootstrap3')
 
@@ -77,6 +81,11 @@ class User(db.Model):
         'polymorphic_on': role
     }
 
+    # def __init__(self, username, legal_name, password):
+    #     self.username = username
+    #     self.legal_name = legal_name
+    #     self.password = bcrypt.generate_password_hash(password)
+
     def to_dict(self):
         return {
             'legal_name': self.legal_name
@@ -138,6 +147,10 @@ class Admin(User):
 class UserModelView(ModelView):
     column_list = ('id', 'username', 'password', 'legal_name', 'role')
     form_columns = ('username', 'password', 'legal_name', 'role')
+    def on_model_change(self, form, model, is_created):
+        if 'password' in form:
+            raw_password = form.password.data
+            model.password = bcrypt.generate_password_hash(raw_password).decode('utf-8')
 
 class CourseModelView(ModelView):
     column_list = ('course_name', 'teacher_id', 'time', 'max_students')
@@ -171,27 +184,27 @@ def create():
     if request.method == 'POST':
         data = request.get_json()
         username = data['username']
-        password = data['password']
+        password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
         legal_name = data['legal_name']
         role = data['role']
 
         if role == 'student':
             if Student.query.filter_by(username=username).first():
-                return 400
+                return error("Student already exists", 400)
             student = Student(username=username, password=password, legal_name=legal_name)
             db.session.add(student)
             db.session.commit()
             return jsonify(student.to_dict())
         elif role == 'teacher':
             if Teacher.query.filter_by(username=username).first():
-                return 400
+                return error("Teacher already exists", 400)
             teacher = Teacher(username=username, password=password, legal_name=legal_name)
             db.session.add(teacher)
             db.session.commit()
             return jsonify(teacher.to_dict())
         elif role == 'admin':
             if Admin.query.filter_by(username=username).first():
-                return 400
+                return error("Admin already exists", 400)
             admin = Admin(username=username, password=password, legal_name=legal_name)
             db.session.add(admin)
             db.session.commit()
@@ -204,12 +217,12 @@ def create():
 @app.route('/<string:username>/<string:password>')
 def show_user_page(username, password):
     user = User.query.filter_by(username=username).first()
-    if user and user.password == password:
+    if user and bcrypt.check_password_hash(user.password.encode('utf-8'), password):
         if user.role == 'admin':
             return redirect('/admin')
         else:
             return render_template(f'{user.role}Template.html', name=user.legal_name)
-    return error('Student not found')
+    return error('Invalid username or password')
 
 
 @app.route('/courses')

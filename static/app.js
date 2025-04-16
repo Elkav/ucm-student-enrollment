@@ -102,11 +102,16 @@ function showAllCourses_student() {
 }
 
 function showMyCourses_teacher() {
-    fetch(`${url}/teacher/${username}`)
+    var x = document.getElementById("displayReg");
+    if (x.style.display == "none") {
+        fetch(`${url}/teacher/${username}`)
         .then(response => response.json())
         .then(data => {
             console.log(username)
             console.table(data);
         })
         .catch(err => console.error(err));
+    } else {
+        x.style.display = "none";
+    }
 }

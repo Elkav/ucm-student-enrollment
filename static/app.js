@@ -75,24 +75,30 @@ function showMyCourses_student() {
 }
 
 function showAllCourses_student() {
-    fetch(`${url}/courses`)
-        .then(response => response.json())
-        .then(data => {
-            const tableBody = document.getElementById("courseTableBody");
-            tableBody.innerHTML = "";
-            Object.entries(data).forEach(([name, grade]) => {
-                let row = document.createElement("tr");
-                row.innerHTML = `
-                            <td>${data["course_name"]}</td>
-                            <td>${data["teacher_id"]}</td>
-                            <td>${data["time"]}</td>
-                            <td>${data["num_students"]}/${data["max_students"]}</td>
-                            <td>add/drop</td>`;
-                tableBody.appendChild(row);
-            });
-            console.log(tableBody);
-        })
-        .catch(err => console.error(err));
+    var x = document.getElementById("myDIV");
+    if (x.style.display === "none") {
+        x.style.display = "block";
+        fetch(`${url}/courses`)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById("courseTableBody");
+                tableBody.innerHTML = "";
+                Object.entries(data).forEach(([name, grade]) => {
+                    let row = document.createElement("tr");
+                    row.innerHTML = `
+                                <td>${data["course_name"]}</td>
+                                <td>${data["teacher_id"]}</td>
+                                <td>${data["time"]}</td>
+                                <td>${data["num_students"]}/${data["max_students"]}</td>
+                                <td>add/drop</td>`;
+                    tableBody.appendChild(row);
+                });
+                console.log(tableBody);
+            })
+            .catch(err => console.error(err));
+  } else {
+    x.style.display = "none";
+  }
 }
 
 function showMyCourses_teacher() {
